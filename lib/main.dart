@@ -16,8 +16,8 @@ void main() async {
 
   // Initialize Supabase
   await Supabase.initialize(
-    url: 'https://cddmksbflgzxmavrddrp.supabase.co',
-    publishableKey: 'sb_publishable_TVp222txq_5NUckBeMeK5g_wG5hEY1t',
+    url: 'https://dciyjibmxmxqthtsxoss.supabase.co',
+    publishableKey: 'sb_publishable_u6odpQxGEPtYth8Pp6QrwA_XofOHoL6',
   );
 
   runApp(const JagacuanApp());

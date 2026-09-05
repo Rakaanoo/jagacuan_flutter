@@ -63,11 +63,11 @@ class NabarActivity {
       userId: map['user_id'] ?? '',
       name: map['user_name'] ?? 'Member',
       amount: (map['amount'] ?? 0).toDouble(),
-      isDeposit: map['is_deposit'] ?? true,
-      note: map['note'] ?? '',
-      timestamp: DateTime.parse(map['created_at']),
+      isDeposit: map['is_deposit'] ?? map['is_income'] ?? true,
+      note: map['note'] ?? map['action_label'] ?? '',
+      timestamp: map['created_at'] != null ? DateTime.parse(map['created_at']) : DateTime.now(),
       status: map['status'] ?? 'approved',
-      avatarUrl: map['user_avatar'],
+      avatarUrl: map['user_avatar'] ?? map['avatar_url'],
     );
   }
 }

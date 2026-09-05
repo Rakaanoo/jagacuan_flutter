@@ -8,11 +8,11 @@ class SupabaseNabarRepository {
 
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
-  // Google Sign-In Native / Web OAuth
+  // Google Sign-In Native / Web OAuth for Flutter Mobile
   Future<User?> signInWithGoogle() async {
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: 'https://jagacuan-app.vercel.app/auth/callback',
+      redirectTo: 'io.supabase.jagacuan://login-callback',
     );
     return _client.auth.currentUser;
   }

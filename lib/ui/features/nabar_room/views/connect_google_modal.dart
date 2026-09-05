@@ -198,7 +198,7 @@ class ConnectGoogleModal extends StatelessWidget {
                             Image.asset(
                               'assets/images/google-logo.png',
                               height: 20,
-                              errorBuilder: (_, __, ___) => const Text(
+                              errorBuilder: (_, _, _) => const Text(
                                 'G',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,

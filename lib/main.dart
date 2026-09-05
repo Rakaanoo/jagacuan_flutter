@@ -38,7 +38,7 @@ class JagacuanApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<TargetListViewModel>(
           create: (context) => TargetListViewModel(
-            localRepo: context.read<LocalStorageRepository>(),
+            context.read<LocalStorageRepository>(),
           ),
         ),
       ],

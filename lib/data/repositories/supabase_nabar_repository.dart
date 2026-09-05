@@ -1,24 +1,44 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/nabar_room.dart';
 
-class SupabaseNabarRepository {
+class SupabaseNabarRepository extends ChangeNotifier {
   final SupabaseClient _client = Supabase.instance.client;
+  bool _isSigningIn = false;
 
+  bool get isSigningIn => _isSigningIn;
   User? get currentUser => _client.auth.currentUser;
 
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
+  SupabaseNabarRepository() {
+    _client.auth.onAuthStateChange.listen((data) {
+      notifyListeners();
+    });
+  }
+
   // Google Sign-In Native / Web OAuth for Flutter Mobile
   Future<User?> signInWithGoogle() async {
-    await _client.auth.signInWithOAuth(
-      OAuthProvider.google,
-      redirectTo: 'io.supabase.jagacuan://login-callback',
-    );
+    if (_isSigningIn) return currentUser;
+    _isSigningIn = true;
+    notifyListeners();
+
+    try {
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.jagacuan://login-callback',
+        authScreenLaunchMode: LaunchMode.externalApplication,
+      );
+    } finally {
+      _isSigningIn = false;
+      notifyListeners();
+    }
     return _client.auth.currentUser;
   }
 
   Future<void> signOut() async {
     await _client.auth.signOut();
+    notifyListeners();
   }
 
   Future<String> createRoom({

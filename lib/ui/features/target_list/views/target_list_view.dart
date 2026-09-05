@@ -241,7 +241,7 @@ class TargetListView extends StatelessWidget {
                                               : 'assets/images/jagacuan-logo-light.png',
                                           height: 50,
                                           color: isDark ? null : const Color(0xFF2C2418),
-                                          errorBuilder: (_, _, _) => Row(
+                                          errorBuilder: (_, __, ___) => Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Icon(

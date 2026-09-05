@@ -7,7 +7,9 @@ enum SortOption { newest, highestProgress, closestDeadline }
 class TargetListViewModel extends ChangeNotifier {
   final LocalStorageRepository _localRepo;
 
-  TargetListViewModel(this._localRepo) {
+  TargetListViewModel({
+    required LocalStorageRepository localRepo,
+  })  : _localRepo = localRepo {
     loadTargets();
   }
 

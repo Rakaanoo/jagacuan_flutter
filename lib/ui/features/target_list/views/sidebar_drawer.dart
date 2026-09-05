@@ -12,7 +12,7 @@ class SidebarDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<TargetListViewModel>();
     final isDark = vm.isDarkMode;
-    final supabaseRepo = context.read<SupabaseNabarRepository>();
+    final supabaseRepo = context.watch<SupabaseNabarRepository>();
     final currentUser = supabaseRepo.currentUser;
 
     final bg = isDark ? const Color(0xFF16171E) : const Color(0xFFFAF7F2);

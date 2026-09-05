@@ -12,7 +12,15 @@ class ConnectGoogleModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<TargetListViewModel>();
     final isDark = vm.isDarkMode;
-    final repo = context.read<SupabaseNabarRepository>();
+    final repo = context.watch<SupabaseNabarRepository>();
+
+    if (repo.currentUser != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      });
+    }
 
     final bg = isDark ? const Color(0xFF181920) : const Color(0xFFFAF6EF);
     final cardBg = isDark ? const Color(0xFF222432) : const Color(0xFFEFEADF);
@@ -171,18 +179,19 @@ class ConnectGoogleModal extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          try {
-                            await repo.signInWithGoogle();
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Google Sign-In: $e')),
-                              );
-                            }
-                          }
-                        },
+                        onPressed: repo.isSigningIn
+                            ? null
+                            : () async {
+                                try {
+                                  await repo.signInWithGoogle();
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Google Sign-In: $e')),
+                                    );
+                                  }
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: const Color(0xFF1F212D),
@@ -192,32 +201,38 @@ class ConnectGoogleModal extends StatelessWidget {
                             borderRadius: BorderRadius.circular(999),
                           ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              'assets/images/google-logo.png',
-                              height: 20,
-                              errorBuilder: (_, _, _) => const Text(
-                                'G',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Color(0xFF4285F4),
-                                ),
+                        child: repo.isSigningIn
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF4285F4)),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/images/google-logo.png',
+                                    height: 20,
+                                    errorBuilder: (_, __, ___) => const Text(
+                                      'G',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Color(0xFF4285F4),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    AppTranslations.tr(vm.language, 'connect_google.button'),
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1F212D),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              AppTranslations.tr(vm.language, 'connect_google.button'),
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1F212D),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                     ),
                   ],

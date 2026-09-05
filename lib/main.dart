@@ -33,12 +33,12 @@ class JagacuanApp extends StatelessWidget {
         Provider<LocalStorageRepository>(
           create: (_) => LocalStorageRepository(),
         ),
-        Provider<SupabaseNabarRepository>(
+        ChangeNotifierProvider<SupabaseNabarRepository>(
           create: (_) => SupabaseNabarRepository(),
         ),
         ChangeNotifierProvider<TargetListViewModel>(
           create: (context) => TargetListViewModel(
-            context.read<LocalStorageRepository>(),
+            localRepo: context.read<LocalStorageRepository>(),
           ),
         ),
       ],

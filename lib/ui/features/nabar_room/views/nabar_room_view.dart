@@ -5,7 +5,6 @@ import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../../../data/models/nabar_room.dart';
 import '../../target_list/view_models/target_list_view_model.dart';
 import '../../../core/formatters.dart';
-import '../../../core/i18n.dart';
 
 class NabarRoomView extends StatefulWidget {
   final String roomId;
@@ -48,23 +47,21 @@ class _NabarRoomViewState extends State<NabarRoomView> {
     final amount = double.tryParse(amountStr) ?? 0;
     if (amount <= 0 || _room == null) return;
 
-    final lang = context.read<TargetListViewModel>().language;
-
     try {
       final repo = context.read<SupabaseNabarRepository>();
       final status = await repo.addRoomTransaction(
         roomId: _room!.id,
         amount: amount,
         isDeposit: true,
-        note: AppTranslations.tr(lang, 'nabar.note_deposit'),
+        note: 'Setoran tabungan',
       );
 
       _amountController.clear();
       if (mounted) Navigator.pop(context);
 
       final msg = status == 'approved'
-          ? AppTranslations.tr(lang, 'nabar.deposit_success')
-          : AppTranslations.tr(lang, 'nabar.deposit_pending_msg');
+          ? 'Setoran berhasil ditambahkan!'
+          : 'Setoran terkirim! Menunggu verifikasi Host.';
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       }
@@ -78,11 +75,10 @@ class _NabarRoomViewState extends State<NabarRoomView> {
 
   Future<void> _approveTx(String txId) async {
     final repo = context.read<SupabaseNabarRepository>();
-    final lang = context.read<TargetListViewModel>().language;
     await repo.approveRoomTransaction(txId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppTranslations.tr(lang, 'nabar.approved_msg'))),
+        const SnackBar(content: Text('Setoran berhasil diverifikasi & diterima!')),
       );
     }
     await _fetchRoom();
@@ -90,11 +86,10 @@ class _NabarRoomViewState extends State<NabarRoomView> {
 
   Future<void> _rejectTx(String txId) async {
     final repo = context.read<SupabaseNabarRepository>();
-    final lang = context.read<TargetListViewModel>().language;
     await repo.rejectRoomTransaction(txId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppTranslations.tr(lang, 'nabar.rejected_msg'))),
+        const SnackBar(content: Text('Setoran ditolak.')),
       );
     }
     await _fetchRoom();
@@ -104,9 +99,6 @@ class _NabarRoomViewState extends State<NabarRoomView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final vm = context.watch<TargetListViewModel>();
-    final lang = vm.language;
-    final currency = vm.currency;
     final repo = context.watch<SupabaseNabarRepository>();
     final currentUser = repo.currentUser;
 
@@ -122,7 +114,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
         appBar: AppBar(
           backgroundColor: bg,
           elevation: 0,
-          title: Text(AppTranslations.tr(lang, 'nabar.room_title'), style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+          title: Text('Ruang Nabar', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
           leading: IconButton(
             icon: Icon(LucideIcons.arrowLeft, color: textColor),
             onPressed: () => Navigator.pop(context),
@@ -156,7 +148,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    AppTranslations.tr(lang, 'sidebar.google_not_connected'),
+                    'Google Belum Terhubung',
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
@@ -165,7 +157,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    AppTranslations.tr(lang, 'sidebar.google_not_connected_desc'),
+                    'Hanya diperlukan untuk Ruang Nabar',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -188,7 +180,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                         }
                       },
                       icon: const Icon(LucideIcons.logIn, size: 18),
-                      label: Text(AppTranslations.tr(lang, 'connect_google.button')),
+                      label: const Text('Hubungkan Google'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF808CFF),
                         foregroundColor: Colors.white,
@@ -215,13 +207,14 @@ class _NabarRoomViewState extends State<NabarRoomView> {
 
     if (_room == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(AppTranslations.tr(lang, 'nabar.room_title'))),
-        body: Center(child: Text(AppTranslations.tr(lang, 'nabar.room_not_found'))),
+        appBar: AppBar(title: const Text('Ruang Nabar')),
+        body: const Center(child: Text('Ruang tidak ditemukan.')),
       );
     }
 
     final room = _room!;
     final isOwner = room.userStatus == 'owner';
+    final currency = context.watch<TargetListViewModel>().currency;
 
     return Scaffold(
       appBar: AppBar(
@@ -231,7 +224,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             icon: const Icon(LucideIcons.share2),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${AppTranslations.tr(lang, 'nabar.share_link')}: https://jagacuan-app.vercel.app/room/${room.id}')),
+                SnackBar(content: Text('Link Ruang: https://jagacuan-app.vercel.app/room/${room.id}')),
               );
             },
           )
@@ -252,7 +245,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('${AppTranslations.tr(lang, 'detail.collected')}:', style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
+                        Text('Terkumpul:', style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
                         Text('${room.progressPercentage.toStringAsFixed(0)}%',
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       ],
@@ -262,7 +255,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                       formatRupiah(room.currentAmount, currency),
                       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
                     ),
-                    Text('${AppTranslations.tr(lang, 'detail.target')}: ${formatRupiah(room.targetAmount, currency)}', style: const TextStyle(fontSize: 12)),
+                    Text('Target: ${formatRupiah(room.targetAmount, currency)}', style: const TextStyle(fontSize: 12)),
                     const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(999),
@@ -284,9 +277,9 @@ class _NabarRoomViewState extends State<NabarRoomView> {
               width: double.infinity,
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: () => _showQuickSetorModal(context, lang, currency),
+                onPressed: () => _showQuickSetorModal(context),
                 icon: const Icon(LucideIcons.plusCircle),
-                label: Text(AppTranslations.tr(lang, 'nabar.record_deposit'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('Catat Setoran Tabungan', style: TextStyle(fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF16A34A),
                   foregroundColor: Colors.white,
@@ -313,7 +306,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                         const Icon(LucideIcons.clock, color: Color(0xFFD97706), size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          '${AppTranslations.tr(lang, 'nabar.pending_host')} (${room.pendingActivities.length})',
+                          'Setoran Menunggu Verifikasi Host (${room.pendingActivities.length})',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                       ],
@@ -338,9 +331,9 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('${act.name} - +${formatRupiah(act.amount, currency)}',
+                                    Text('${act.name} - +${formatRupiah(act.amount)}',
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                    Text('${formatTimeAgo(act.timestamp)} • ${AppTranslations.tr(lang, 'nabar.pending_host_badge')}',
+                                    Text('${formatTimeAgo(act.timestamp)} • Pending Host',
                                         style: const TextStyle(fontSize: 11, color: Colors.grey)),
                                   ],
                                 ),
@@ -367,10 +360,10 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             ],
 
             // Recent Activities
-            Text(AppTranslations.tr(lang, 'nabar.recent_activities'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const Text('Aktivitas Terbaru', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 10),
             if (room.activities.isEmpty)
-              Text(AppTranslations.tr(lang, 'nabar.no_activities'))
+              const Text('Belum ada setoran terverifikasi.')
             else
               ...room.activities.map((act) => ListTile(
                     leading: CircleAvatar(
@@ -379,7 +372,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     ),
                     title: Text(act.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(formatTimeAgo(act.timestamp)),
-                    trailing: Text('+${formatRupiah(act.amount, currency)}',
+                    trailing: Text('+${formatRupiah(act.amount)}',
                         style: const TextStyle(color: Color(0xFF16A34A), fontWeight: FontWeight.bold)),
                   )),
           ],
@@ -388,8 +381,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
     );
   }
 
-  void _showQuickSetorModal(BuildContext context, String lang, String currency) {
-    final symbol = currencySymbolMap[currency] ?? 'Rp';
+  void _showQuickSetorModal(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -404,14 +396,14 @@ class _NabarRoomViewState extends State<NabarRoomView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppTranslations.tr(lang, 'nabar.setor_to_room'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const Text('Setor Uang ke Room', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 14),
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
               autofocus: true,
               decoration: InputDecoration(
-                labelText: '${AppTranslations.tr(lang, 'detail.amount_nominal')} ($symbol)',
+                labelText: 'Jumlah Nominal (Rp)',
                 hintText: '50.000',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
               ),
@@ -427,7 +419,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                child: Text(AppTranslations.tr(lang, 'nabar.send_deposit'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Kirim Setoran', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -436,4 +428,3 @@ class _NabarRoomViewState extends State<NabarRoomView> {
     );
   }
 }
-

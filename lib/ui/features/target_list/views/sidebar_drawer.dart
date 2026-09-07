@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../view_models/target_list_view_model.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
+import '../../nabar_room/views/connect_google_modal.dart';
 import '../../../core/i18n.dart';
 
 class SidebarDrawer extends StatelessWidget {
@@ -66,16 +67,11 @@ class SidebarDrawer extends StatelessWidget {
               // User Profile Card (Google Belum Terhubung / Connected)
               currentUser == null
                   ? InkWell(
-                      onTap: () async {
-                        try {
-                          await supabaseRepo.signInWithGoogle();
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Google Sign-In: $e')),
-                            );
-                          }
-                        }
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => const ConnectGoogleModal(),
+                        );
                       },
                       borderRadius: BorderRadius.circular(16),
                       child: Container(

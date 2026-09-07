@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
@@ -289,6 +290,49 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             ),
             const SizedBox(height: 20),
 
+            // Invite Code Card
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF222432) : const Color(0xFFEFEADF),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isDark ? const Color(0xFF333748) : const Color(0xFFDDD5C7)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.keyRound, size: 20, color: Color(0xFF7C8BFF)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Kode Invite Room', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        SelectableText(
+                          room.inviteCode,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 0.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: room.inviteCode));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Kode invite berhasil disalin!')),
+                      );
+                    },
+                    icon: const Icon(LucideIcons.copy, size: 14),
+                    label: const Text('Salin'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
             // Pending Host Verification Section (HOST ONLY)
             if (isOwner && room.pendingActivities.isNotEmpty) ...[
               Container(
@@ -358,6 +402,19 @@ class _NabarRoomViewState extends State<NabarRoomView> {
               ),
               const SizedBox(height: 20),
             ],
+
+            // Anggota Room Section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Anggota Nabar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Chip(
+                  label: Text('${room.members.length} Orang', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
 
             // Recent Activities
             const Text('Aktivitas Terbaru', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),

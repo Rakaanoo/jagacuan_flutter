@@ -27,7 +27,7 @@ class SupabaseNabarRepository extends ChangeNotifier {
       await _client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: 'io.supabase.jagacuan://login-callback',
-        authScreenLaunchMode: LaunchMode.inAppWebView,
+        authScreenLaunchMode: LaunchMode.externalApplication,
       );
     } finally {
       _isSigningIn = false;

@@ -17,17 +17,19 @@ class SupabaseNabarRepository extends ChangeNotifier {
     });
   }
 
-  // Google Sign-In Native / Web OAuth for Flutter Mobile
+  // Google Sign-In Native / Web OAuth for Flutter
   Future<User?> signInWithGoogle() async {
     if (_isSigningIn) return currentUser;
     _isSigningIn = true;
     notifyListeners();
 
     try {
+      // Use custom scheme deep link on Mobile, or null (current URL) on Web
+      final redirectUrl = kIsWeb ? null : 'io.supabase.jagacuan://login-callback';
       await _client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: 'io.supabase.jagacuan://login-callback',
-        authScreenLaunchMode: LaunchMode.externalApplication,
+        redirectTo: redirectUrl,
+        authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
       );
     } finally {
       _isSigningIn = false;

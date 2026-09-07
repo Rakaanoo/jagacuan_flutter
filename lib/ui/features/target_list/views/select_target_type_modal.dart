@@ -4,6 +4,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/models/target_item.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../nabar_room/views/connect_google_modal.dart';
+import '../../nabar_room/views/nabar_room_view.dart';
 import '../../target_list/view_models/target_list_view_model.dart';
 import '../../../core/i18n.dart';
 
@@ -78,7 +79,7 @@ class SelectTargetTypeModal extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Option 3: Nabung Bareng
+          // Option 3: Nabung Bareng (Buat Room Baru)
           _buildOptionCard(
             context,
             icon: LucideIcons.users,
@@ -100,6 +101,34 @@ class SelectTargetTypeModal extends StatelessWidget {
                 );
               } else {
                 onSelectType(TargetType.nabar);
+              }
+            },
+          ),
+          const SizedBox(height: 12),
+
+          // Option 4: Gabung Room Nabar (Kode Invite)
+          _buildOptionCard(
+            context,
+            icon: LucideIcons.userPlus,
+            title: 'Gabung Room Nabar',
+            subtitle: 'Masukan kode invite dari teman untuk bergabung ke room tabungan',
+            cardBg: cardBg,
+            cardBorder: cardBorder,
+            iconBg: iconBg,
+            iconColor: const Color(0xFF10B981),
+            titleColor: titleColor,
+            subColor: subColor,
+            onTap: () {
+              final supabaseRepo = context.read<SupabaseNabarRepository>();
+              if (supabaseRepo.currentUser == null) {
+                Navigator.pop(context);
+                showDialog(
+                  context: context,
+                  builder: (_) => const ConnectGoogleModal(),
+                );
+              } else {
+                Navigator.pop(context);
+                _showJoinRoomDialog(context);
               }
             },
           ),
@@ -197,6 +226,71 @@ class SelectTargetTypeModal extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showJoinRoomDialog(BuildContext context) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Gabung Room Nabar', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Masukkan Kode Invite / ID Room yang diberikan oleh Host:'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'Contoh: c4b12a8e',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final code = controller.text.trim();
+              if (code.isEmpty) return;
+
+              Navigator.pop(ctx);
+              try {
+                final repo = context.read<SupabaseNabarRepository>();
+                final room = await repo.joinRoomByInviteCode(code);
+                if (room != null && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Berhasil bergabung ke room "${room.name}"!')),
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => NabarRoomView(roomId: room.id)),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gagal bergabung: $e')),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Gabung Room'),
+          ),
+        ],
       ),
     );
   }

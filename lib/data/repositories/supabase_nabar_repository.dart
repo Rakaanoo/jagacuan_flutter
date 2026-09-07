@@ -41,6 +41,33 @@ class SupabaseNabarRepository extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<NabarRoom?> joinRoomByInviteCode(String inviteCode) async {
+    final user = currentUser;
+    if (user == null) throw Exception('Anda harus login terlebih dahulu.');
+
+    final cleanCode = inviteCode.trim();
+    if (cleanCode.isEmpty) throw Exception('Kode invite tidak boleh kosong.');
+
+    final roomRes = await _client
+        .from('rooms')
+        .select('id')
+        .or('invite_code.eq.$cleanCode,id.eq.$cleanCode')
+        .maybeSingle();
+
+    if (roomRes == null) throw Exception('Ruang / Kode Invite "$cleanCode" tidak ditemukan.');
+
+    final roomId = roomRes['id'].toString();
+
+    await _client.from('room_members').upsert({
+      'room_id': roomId,
+      'user_id': user.id,
+      'role': 'member',
+      'status': 'approved',
+    }, onConflict: 'room_id, user_id');
+
+    return getRoomById(roomId);
+  }
+
   Future<String> createRoom({
     required String name,
     required double targetAmount,

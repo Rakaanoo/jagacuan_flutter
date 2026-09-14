@@ -27,6 +27,10 @@ class TargetItem {
   final String? coverUrl;
   final String? roomId; // ID Ruang Supabase jika type == nabar
   final List<TransactionItem> transactions;
+  final bool alarmEnabled;
+  final int alarmHour;
+  final int alarmMinute;
+  final String alarmDayKey;
 
   TargetItem({
     required this.id,
@@ -42,6 +46,10 @@ class TargetItem {
     this.coverUrl,
     this.roomId,
     this.transactions = const [],
+    this.alarmEnabled = false,
+    this.alarmHour = 12,
+    this.alarmMinute = 0,
+    this.alarmDayKey = 'alarm.day_everyday',
   });
 
   double get progressPercentage {
@@ -72,6 +80,10 @@ class TargetItem {
     String? coverUrl,
     String? roomId,
     List<TransactionItem>? transactions,
+    bool? alarmEnabled,
+    int? alarmHour,
+    int? alarmMinute,
+    String? alarmDayKey,
   }) {
     return TargetItem(
       id: id ?? this.id,
@@ -87,6 +99,10 @@ class TargetItem {
       coverUrl: coverUrl ?? this.coverUrl,
       roomId: roomId ?? this.roomId,
       transactions: transactions ?? this.transactions,
+      alarmEnabled: alarmEnabled ?? this.alarmEnabled,
+      alarmHour: alarmHour ?? this.alarmHour,
+      alarmMinute: alarmMinute ?? this.alarmMinute,
+      alarmDayKey: alarmDayKey ?? this.alarmDayKey,
     );
   }
 
@@ -105,6 +121,10 @@ class TargetItem {
       'coverUrl': coverUrl,
       'roomId': roomId,
       'transactions': transactions.map((t) => t.toMap()).toList(),
+      'alarmEnabled': alarmEnabled,
+      'alarmHour': alarmHour,
+      'alarmMinute': alarmMinute,
+      'alarmDayKey': alarmDayKey,
     };
   }
 
@@ -137,6 +157,10 @@ class TargetItem {
               .map((t) => TransactionItem.fromMap(t))
               .toList()
           : [],
+      alarmEnabled: map['alarmEnabled'] ?? false,
+      alarmHour: map['alarmHour'] ?? 12,
+      alarmMinute: map['alarmMinute'] ?? 0,
+      alarmDayKey: map['alarmDayKey'] ?? 'alarm.day_everyday',
     );
   }
 

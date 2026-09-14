@@ -17,17 +17,19 @@ class NabarMember {
     required this.avatarBg,
   });
 
-  factory NabarMember.fromMap(Map<String, dynamic> map) {
+  factory NabarMember.fromMap(Map<String, dynamic> map, {String? roomOwnerId}) {
     final meta = map['user_metadata'] as Map<String, dynamic>? ?? {};
-    final fullName = meta['full_name'] ?? meta['name'] ?? map['email']?.split('@').first ?? 'Member';
-    final avatar = meta['avatar_url'] ?? meta['picture'];
+    final fullName = map['user_name'] ?? map['name'] ?? meta['full_name'] ?? meta['name'] ?? map['email']?.split('@').first ?? 'Member';
+    final avatar = map['avatar_url'] ?? map['user_avatar'] ?? meta['avatar_url'] ?? meta['picture'];
+    final uId = map['user_id'] ?? '';
+    final computedRole = (roomOwnerId != null && uId == roomOwnerId) ? 'owner' : (map['role'] ?? 'member');
 
     return NabarMember(
       id: map['id']?.toString() ?? '',
-      userId: map['user_id'] ?? '',
+      userId: uId,
       name: fullName,
       status: map['status'] ?? 'pending',
-      role: map['role'] ?? 'member',
+      role: computedRole,
       avatarUrl: avatar,
       avatarBg: '#7C8BFF',
     );

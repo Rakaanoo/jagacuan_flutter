@@ -16,8 +16,38 @@ import '../../statistics/views/statistics_modal.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../../core/i18n.dart';
 
-class TargetListView extends StatelessWidget {
+import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../core/notification_permission_dialog.dart';
+
+class TargetListView extends StatefulWidget {
   const TargetListView({super.key});
+
+  @override
+  State<TargetListView> createState() => _TargetListViewState();
+}
+
+class _TargetListViewState extends State<TargetListView> {
+  bool _checkedInitialNotif = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_checkedInitialNotif) {
+      _checkedInitialNotif = true;
+      _checkInitialNotificationPrompt();
+    }
+  }
+
+  Future<void> _checkInitialNotificationPrompt() async {
+    final localRepo = context.read<LocalStorageRepository>();
+    final prompted = await localRepo.hasPromptedInitialNotification();
+    if (!prompted && mounted) {
+      await localRepo.setPromptedInitialNotification();
+      if (mounted) {
+        showNotificationPermissionDialog(context);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

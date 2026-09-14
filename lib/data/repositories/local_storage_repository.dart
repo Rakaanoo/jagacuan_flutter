@@ -95,4 +95,22 @@ class LocalStorageRepository {
       await saveTargets(targets);
     }
   }
+
+  Future<bool> hasPromptedInitialNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('jagacuan_initial_notif_prompted') ?? (prefs.getBool('jagacuan_google_notif_prompted') ?? false);
+  }
+
+  Future<void> setPromptedInitialNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('jagacuan_initial_notif_prompted', true);
+  }
+
+  Future<bool> hasPromptedGoogleNotification() async {
+    return hasPromptedInitialNotification();
+  }
+
+  Future<void> setPromptedGoogleNotification() async {
+    await setPromptedInitialNotification();
+  }
 }

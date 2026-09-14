@@ -53,17 +53,22 @@ class SupabaseNabarRepository extends ChangeNotifier {
     final roomRes = await _client
         .from('rooms')
         .select('id')
-        .or('invite_code.eq.$cleanCode,id.eq.$cleanCode')
+        .eq('id', cleanCode)
         .maybeSingle();
 
-    if (roomRes == null) throw Exception('Ruang / Kode Invite "$cleanCode" tidak ditemukan.');
+    if (roomRes == null) throw Exception('Ruang Nabung dengan ID "$cleanCode" tidak ditemukan.');
 
     final roomId = roomRes['id'].toString();
+
+    final meta = user.userMetadata ?? {};
+    final fullName = meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'Member';
+    final avatarUrl = meta['avatar_url'] ?? meta['picture'];
 
     await _client.from('room_members').upsert({
       'room_id': roomId,
       'user_id': user.id,
-      'role': 'member',
+      'user_name': fullName,
+      'avatar_url': avatarUrl,
       'status': 'approved',
     }, onConflict: 'room_id, user_id');
 
@@ -81,93 +86,153 @@ class SupabaseNabarRepository extends ChangeNotifier {
     if (user == null) throw Exception('Anda harus login terlebih dahulu.');
 
     final response = await _client.from('rooms').insert({
-      'name': name,
+      'title': name,
       'target_amount': targetAmount,
       'current_amount': 0,
-      'target_date': targetDate.toIso8601String().split('T').first,
+      'deadline_date': targetDate.toIso8601String().split('T').first,
       'owner_id': user.id,
       'note': note,
-      'cover_url': coverUrl,
+      'cover_image': coverUrl,
     }).select().single();
 
     final roomId = response['id'].toString();
+
+    final meta = user.userMetadata ?? {};
+    final fullName = meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'Owner';
+    final avatarUrl = meta['avatar_url'] ?? meta['picture'];
 
     // Automatically insert owner into room_members
     await _client.from('room_members').insert({
       'room_id': roomId,
       'user_id': user.id,
-      'role': 'owner',
+      'user_name': fullName,
+      'avatar_url': avatarUrl,
       'status': 'approved',
     });
 
     return roomId;
   }
 
+  Future<List<NabarRoom>> getUserRooms() async {
+    final user = currentUser;
+    if (user == null) return [];
+
+    try {
+      final memberRows = await _client
+          .from('room_members')
+          .select('room_id')
+          .eq('user_id', user.id);
+
+      final List<String> memberRoomIds = (memberRows as List)
+          .map((r) => r['room_id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty)
+          .toList();
+
+      late final List roomsRes;
+      if (memberRoomIds.isNotEmpty) {
+        final idsStr = memberRoomIds.join(',');
+        roomsRes = await _client
+            .from('rooms')
+            .select()
+            .or('owner_id.eq.${user.id},id.in.($idsStr)')
+            .order('created_at', ascending: false);
+      } else {
+        roomsRes = await _client
+            .from('rooms')
+            .select()
+            .eq('owner_id', user.id)
+            .order('created_at', ascending: false);
+      }
+
+      final List<NabarRoom> rooms = [];
+      for (var r in (roomsRes as List)) {
+        final roomId = r['id'].toString();
+        final detailed = await getRoomById(roomId);
+        if (detailed != null) rooms.add(detailed);
+      }
+      return rooms;
+    } catch (e) {
+      debugPrint('Error getting user rooms: $e');
+      return [];
+    }
+  }
+
   Future<NabarRoom?> getRoomById(String roomId) async {
+    if (roomId.isEmpty || roomId == 'demo_room') return null;
     final user = currentUser;
 
-    final roomRes = await _client.from('rooms').select().eq('id', roomId).maybeSingle();
-    if (roomRes == null) return null;
+    try {
+      final roomRes = await _client.from('rooms').select().eq('id', roomId).maybeSingle();
+      if (roomRes == null) return null;
 
-    final membersRes = await _client.from('room_members').select('''
-      id, user_id, role, status
-    ''').eq('room_id', roomId);
+      final ownerId = roomRes['owner_id']?.toString() ?? '';
 
-    final txRes = await _client.from('room_transactions').select('''
-      id, user_id, user_name, user_avatar, amount, is_deposit, note, created_at, status
-    ''').eq('room_id', roomId).order('created_at', ascending: false);
+      final membersRes = await _client.from('room_members').select('''
+        id, user_id, status, user_name, avatar_url
+      ''').eq('room_id', roomId);
 
-    final List<NabarMember> members = [];
-    final List<NabarMember> pendingMembers = [];
-    String userStatus = 'non_member';
+      final txRes = await _client.from('room_transactions').select('''
+        id, user_id, user_name, avatar_url, amount, is_income, action_label, created_at, status
+      ''').eq('room_id', roomId).order('created_at', ascending: false);
 
-    for (var m in (membersRes as List)) {
-      final member = NabarMember.fromMap(m);
-      if (user != null && member.userId == user.id) {
-        if (member.role == 'owner') {
-          userStatus = 'owner';
-        } else if (member.status == 'approved') {
-          userStatus = 'approved_member';
+      final List<NabarMember> members = [];
+      final List<NabarMember> pendingMembers = [];
+      String userStatus = 'non_member';
+
+      for (var m in (membersRes as List)) {
+        final member = NabarMember.fromMap(m, roomOwnerId: ownerId);
+        if (user != null && member.userId == user.id) {
+          if (ownerId == user.id) {
+            userStatus = 'owner';
+          } else if (member.status == 'approved') {
+            userStatus = 'approved_member';
+          } else if (member.status == 'pending') {
+            userStatus = 'pending_member';
+          }
+        }
+
+        if (member.status == 'approved') {
+          members.add(member);
         } else if (member.status == 'pending') {
-          userStatus = 'pending_member';
+          pendingMembers.add(member);
         }
       }
 
-      if (member.status == 'approved') {
-        members.add(member);
-      } else if (member.status == 'pending') {
-        pendingMembers.add(member);
+      final List<NabarActivity> activities = [];
+      final List<NabarActivity> pendingActivities = [];
+
+      for (var t in (txRes as List)) {
+        final act = NabarActivity.fromMap(t);
+        if (act.status == 'approved') {
+          activities.add(act);
+        } else if (act.status == 'pending') {
+          pendingActivities.add(act);
+        }
       }
+
+      final dateStr = roomRes['deadline_date'] ?? roomRes['start_date'];
+      final parsedDate = dateStr != null ? DateTime.tryParse(dateStr.toString()) ?? DateTime.now() : DateTime.now();
+
+      return NabarRoom(
+        id: roomRes['id'].toString(),
+        name: roomRes['title'] ?? 'Ruang Nabung',
+        targetAmount: (roomRes['target_amount'] ?? 0).toDouble(),
+        currentAmount: (roomRes['current_amount'] ?? 0).toDouble(),
+        targetDate: parsedDate,
+        ownerId: ownerId,
+        note: roomRes['note'],
+        coverUrl: roomRes['cover_image'],
+        inviteCode: roomRes['id'].toString(),
+        userStatus: userStatus,
+        members: members,
+        pendingMembers: pendingMembers,
+        activities: activities,
+        pendingActivities: pendingActivities,
+      );
+    } catch (e) {
+      debugPrint('Error fetching room by ID ($roomId): $e');
+      return null;
     }
-
-    final List<NabarActivity> activities = [];
-    final List<NabarActivity> pendingActivities = [];
-
-    for (var t in (txRes as List)) {
-      final act = NabarActivity.fromMap(t);
-      if (act.status == 'approved') {
-        activities.add(act);
-      } else if (act.status == 'pending') {
-        pendingActivities.add(act);
-      }
-    }
-
-    return NabarRoom(
-      id: roomRes['id'].toString(),
-      name: roomRes['name'] ?? '',
-      targetAmount: (roomRes['target_amount'] ?? 0).toDouble(),
-      currentAmount: (roomRes['current_amount'] ?? 0).toDouble(),
-      targetDate: DateTime.parse(roomRes['target_date']),
-      ownerId: roomRes['owner_id'] ?? '',
-      note: roomRes['note'],
-      coverUrl: roomRes['cover_url'],
-      inviteCode: roomRes['invite_code'] ?? roomRes['id'].toString(),
-      userStatus: userStatus,
-      members: members,
-      pendingMembers: pendingMembers,
-      activities: activities,
-      pendingActivities: pendingActivities,
-    );
   }
 
   Future<String> addRoomTransaction({
@@ -193,10 +258,10 @@ class SupabaseNabarRepository extends ChangeNotifier {
       'room_id': roomId,
       'user_id': user.id,
       'user_name': fullName,
-      'user_avatar': avatar,
+      'avatar_url': avatar,
       'amount': amount,
-      'is_deposit': isDeposit,
-      'note': note ?? 'Setoran tabungan',
+      'is_income': isDeposit,
+      'action_label': note ?? 'Setoran tabungan',
       'status': status,
     });
 

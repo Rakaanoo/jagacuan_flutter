@@ -5,6 +5,9 @@ import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../target_list/view_models/target_list_view_model.dart';
 import '../../../core/i18n.dart';
 
+import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../core/notification_permission_dialog.dart';
+
 class ConnectGoogleModal extends StatelessWidget {
   const ConnectGoogleModal({super.key});
 
@@ -15,9 +18,19 @@ class ConnectGoogleModal extends StatelessWidget {
     final repo = context.watch<SupabaseNabarRepository>();
 
     if (repo.currentUser != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (context.mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
+          final localRepo = context.read<LocalStorageRepository>();
+          final prompted = await localRepo.hasPromptedGoogleNotification();
+          if (context.mounted) {
+            Navigator.of(context, rootNavigator: true).pop();
+            if (!prompted) {
+              await localRepo.setPromptedGoogleNotification();
+              if (context.mounted) {
+                showNotificationPermissionDialog(context);
+              }
+            }
+          }
         }
       });
     }

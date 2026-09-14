@@ -33,13 +33,40 @@ class _NabarRoomViewState extends State<NabarRoomView> {
   }
 
   Future<void> _fetchRoom() async {
-    final repo = context.read<SupabaseNabarRepository>();
-    final room = await repo.getRoomById(widget.roomId);
     if (mounted) {
       setState(() {
-        _room = room;
-        _isLoading = false;
+        _isLoading = true;
       });
+    }
+
+    try {
+      final repo = context.read<SupabaseNabarRepository>();
+      NabarRoom? room;
+
+      if (widget.roomId != 'demo_room' && widget.roomId.isNotEmpty) {
+        room = await repo.getRoomById(widget.roomId);
+      }
+
+      if (room == null && repo.currentUser != null) {
+        final userRooms = await repo.getUserRooms();
+        if (userRooms.isNotEmpty) {
+          room = userRooms.first;
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _room = room;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching Nabar room: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -207,9 +234,88 @@ class _NabarRoomViewState extends State<NabarRoomView> {
     }
 
     if (_room == null) {
+      final bg = isDark ? const Color(0xFF131418) : const Color(0xFFFAF7F2);
+      final cardBg = isDark ? const Color(0xFF222432) : const Color(0xFFEFEADF);
+      final cardBorder = isDark ? const Color(0xFF333748) : const Color(0xFFDDD5C7);
+      final textColor = isDark ? Colors.white : const Color(0xFF2C2418);
+      final mutedTextColor = isDark ? const Color(0xFFA0A5B5) : const Color(0xFF7A6F60);
+
       return Scaffold(
-        appBar: AppBar(title: const Text('Ruang Nabar')),
-        body: const Center(child: Text('Ruang tidak ditemukan.')),
+        backgroundColor: bg,
+        appBar: AppBar(
+          backgroundColor: bg,
+          elevation: 0,
+          title: Text('Ruang Nabar', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+          leading: IconButton(
+            icon: Icon(LucideIcons.arrowLeft, color: textColor),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: cardBorder, width: 1.2),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF2C2F40) : const Color(0xFFE5DDD0),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(LucideIcons.users, size: 26, color: Color(0xFF7C8BFF)),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Belum Ada Ruang Nabung',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Anda belum memiliki atau bergabung di Ruang Nabung. Buat ruang baru atau gabung dengan kode invite dari teman Anda.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: mutedTextColor,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(LucideIcons.plusCircle, size: 18),
+                      label: const Text('Buat Target Nabung / Nabar'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7C8BFF),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       );
     }
 
@@ -415,6 +521,42 @@ class _NabarRoomViewState extends State<NabarRoomView> {
               ],
             ),
             const SizedBox(height: 10),
+            SizedBox(
+              height: 48,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: room.members.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, idx) {
+                  final mem = room.members[idx];
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF222432) : const Color(0xFFEFEADF),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: isDark ? const Color(0xFF333748) : const Color(0xFFDDD5C7)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: 14,
+                          backgroundImage: mem.avatarUrl != null && mem.avatarUrl!.isNotEmpty
+                              ? NetworkImage(mem.avatarUrl!)
+                              : null,
+                          child: (mem.avatarUrl == null || mem.avatarUrl!.isEmpty)
+                              ? Text(mem.name[0].toUpperCase(), style: const TextStyle(fontSize: 12))
+                              : null,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(mem.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
 
             // Recent Activities
             const Text('Aktivitas Terbaru', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),

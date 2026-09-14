@@ -23,8 +23,9 @@ class SidebarDrawer extends StatelessWidget {
     final mutedTextColor = isDark ? const Color(0xFF8A8F9E) : const Color(0xFF7A6F60);
     final iconColor = isDark ? const Color(0xFFA4B1FF) : const Color(0xFF2C2418);
 
+    final googleAvatarUrl = currentUser?.userMetadata?['avatar_url'] ?? currentUser?.userMetadata?['picture'];
     final userName = currentUser != null
-        ? (currentUser.userMetadata?['full_name'] ?? currentUser.email ?? 'Eka putra')
+        ? (currentUser.userMetadata?['full_name'] ?? currentUser.userMetadata?['name'] ?? currentUser.email ?? 'Eka putra')
         : 'Eka putra';
     final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : 'E';
 
@@ -138,14 +139,19 @@ class SidebarDrawer extends StatelessWidget {
                           CircleAvatar(
                             radius: 20,
                             backgroundColor: const Color(0xFF0284C7),
-                            child: Text(
-                              userInitial,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                            backgroundImage: googleAvatarUrl != null && googleAvatarUrl.isNotEmpty
+                                ? NetworkImage(googleAvatarUrl)
+                                : null,
+                            child: (googleAvatarUrl == null || googleAvatarUrl.isEmpty)
+                                ? Text(
+                                    userInitial,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  )
+                                : null,
                           ),
                           const SizedBox(width: 12),
                           Expanded(

@@ -107,4 +107,24 @@ class TargetListViewModel extends ChangeNotifier {
     await _localRepo.deleteTarget(id);
     await loadTargets();
   }
+
+  Future<void> updateTargetAlarm(
+    String id, {
+    required bool alarmEnabled,
+    required int alarmHour,
+    required int alarmMinute,
+    required String alarmDayKey,
+  }) async {
+    final idx = _targets.indexWhere((t) => t.id == id);
+    if (idx != -1) {
+      final updated = _targets[idx].copyWith(
+        alarmEnabled: alarmEnabled,
+        alarmHour: alarmHour,
+        alarmMinute: alarmMinute,
+        alarmDayKey: alarmDayKey,
+      );
+      await _localRepo.updateTarget(updated);
+      await loadTargets();
+    }
+  }
 }

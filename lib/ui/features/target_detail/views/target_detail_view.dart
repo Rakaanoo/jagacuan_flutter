@@ -8,6 +8,8 @@ import '../../target_list/view_models/target_list_view_model.dart';
 import '../../../core/formatters.dart';
 import '../../../core/i18n.dart';
 
+import '../../../core/notification_permission_dialog.dart';
+
 class TargetDetailView extends StatefulWidget {
   final String targetId;
   const TargetDetailView({super.key, required this.targetId});
@@ -27,6 +29,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
   bool _isPm = true;
   String _clockMode = 'hour'; // 'hour' or 'minute'
   String _alarmDayKey = 'alarm.day_sunday';
+  bool _isAlarmInitialized = false;
 
   final List<String> _daysKeys = [
     'alarm.day_everyday',
@@ -56,6 +59,49 @@ class _TargetDetailViewState extends State<TargetDetailView> {
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveAlarmSettings(bool enabled, int hour, int minute, String dayKey) async {
+    final vm = context.read<TargetListViewModel>();
+    await vm.updateTargetAlarm(
+      widget.targetId,
+      alarmEnabled: enabled,
+      alarmHour: hour,
+      alarmMinute: minute,
+      alarmDayKey: dayKey,
+    );
+  }
+
+  Future<void> _handleAlarmToggle(bool enabled) async {
+    if (enabled) {
+      final isGranted = await checkAndShowNotificationPermissionDialog(context);
+      if (!isGranted) {
+        if (!mounted) return;
+        setState(() {
+          _alarmEnabled = false;
+        });
+        await _saveAlarmSettings(false, _selectedHour, _selectedMinute, _alarmDayKey);
+        return;
+      }
+    }
+
+    setState(() {
+      _alarmEnabled = enabled;
+    });
+    await _saveAlarmSettings(enabled, _selectedHour, _selectedMinute, _alarmDayKey);
+
+    if (!mounted) return;
+    final vm = context.read<TargetListViewModel>();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          enabled
+              ? '${AppTranslations.tr(vm.language, 'alarm.enabled')}! (${AppTranslations.tr(vm.language, _alarmDayKey)}) ${_selectedHour.toString().padLeft(2, '0')}:${_selectedMinute.toString().padLeft(2, '0')}'
+              : AppTranslations.tr(vm.language, 'alarm.disabled'),
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _showTransactionModal(BuildContext context, bool isDeposit) {
@@ -373,6 +419,14 @@ class _TargetDetailViewState extends State<TargetDetailView> {
       );
     }
 
+    if (!_isAlarmInitialized) {
+      _alarmEnabled = target.alarmEnabled;
+      _selectedHour = target.alarmHour;
+      _selectedMinute = target.alarmMinute;
+      _alarmDayKey = target.alarmDayKey;
+      _isAlarmInitialized = true;
+    }
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF23242A) : const Color(0xFFFAF6EF);
@@ -634,21 +688,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                           ),
                           Switch(
                             value: _alarmEnabled,
-                            onChanged: (val) {
-                              setState(() {
-                                _alarmEnabled = val;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    val
-                                        ? '${AppTranslations.tr(vm.language, 'alarm.enabled')}! (${AppTranslations.tr(vm.language, _alarmDayKey)}) ${_selectedHour.toString().padLeft(2, '0')}:${_selectedMinute.toString().padLeft(2, '0')}'
-                                        : AppTranslations.tr(vm.language, 'alarm.disabled'),
-                                  ),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            },
+                            onChanged: (val) => _handleAlarmToggle(val),
                             activeTrackColor: const Color(0xFF7C8BFF),
                           ),
                         ],
@@ -673,7 +713,10 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                           children: _daysKeys.map((dayKey) {
                             final isSel = _alarmDayKey == dayKey;
                             return InkWell(
-                              onTap: () => setState(() => _alarmDayKey = dayKey),
+                              onTap: () async {
+                                setState(() => _alarmDayKey = dayKey);
+                                await _saveAlarmSettings(_alarmEnabled, _selectedHour, _selectedMinute, dayKey);
+                              },
                               borderRadius: BorderRadius.circular(999),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -700,8 +743,22 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                         Align(
                           alignment: Alignment.centerRight,
                           child: ElevatedButton.icon(
-                            onPressed: () {
+                            onPressed: () async {
+                              if (_alarmEnabled) {
+                                final isGranted = await checkAndShowNotificationPermissionDialog(context);
+                                if (!isGranted) {
+                                  if (!mounted) return;
+                                  setState(() {
+                                    _alarmEnabled = false;
+                                  });
+                                  await _saveAlarmSettings(false, _selectedHour, _selectedMinute, _alarmDayKey);
+                                  return;
+                                }
+                              }
                               setState(() => _isEditingAlarm = false);
+                              await _saveAlarmSettings(_alarmEnabled, _selectedHour, _selectedMinute, _alarmDayKey);
+                              if (!mounted) return;
+                              final vm = context.read<TargetListViewModel>();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(

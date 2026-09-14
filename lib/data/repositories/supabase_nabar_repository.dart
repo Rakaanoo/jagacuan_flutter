@@ -145,10 +145,11 @@ class SupabaseNabarRepository extends ChangeNotifier {
       }
 
       final List<NabarRoom> rooms = [];
-      for (var r in (roomsRes as List)) {
-        final roomId = r['id'].toString();
-        final detailed = await getRoomById(roomId);
-        if (detailed != null) rooms.add(detailed);
+      final results = await Future.wait(
+        (roomsRes as List).map((r) => getRoomById(r['id'].toString())),
+      );
+      for (var room in results) {
+        if (room != null) rooms.add(room);
       }
       return rooms;
     } catch (e) {

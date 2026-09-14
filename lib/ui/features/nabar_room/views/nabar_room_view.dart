@@ -44,11 +44,17 @@ class _NabarRoomViewState extends State<NabarRoomView> {
       NabarRoom? room;
 
       if (widget.roomId != 'demo_room' && widget.roomId.isNotEmpty) {
-        room = await repo.getRoomById(widget.roomId);
+        room = await repo.getRoomById(widget.roomId).timeout(
+          const Duration(seconds: 4),
+          onTimeout: () => null,
+        );
       }
 
       if (room == null && repo.currentUser != null) {
-        final userRooms = await repo.getUserRooms();
+        final userRooms = await repo.getUserRooms().timeout(
+          const Duration(seconds: 4),
+          onTimeout: () => [],
+        );
         if (userRooms.isNotEmpty) {
           room = userRooms.first;
         }

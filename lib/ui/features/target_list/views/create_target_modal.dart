@@ -105,13 +105,20 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
       final id = DateTime.now().millisecondsSinceEpoch.toString();
 
       if (_selectedType == TargetType.nabar) {
-        final supabaseRepo = context.read<SupabaseNabarRepository>();
-        final roomId = await supabaseRepo.createRoom(
-          name: title,
-          targetAmount: baseTargetAmount,
-          targetDate: _deadlineDate ?? _startDate.add(const Duration(days: 30)),
-          note: _noteController.text,
-        );
+        String? roomId;
+        try {
+          final supabaseRepo = context.read<SupabaseNabarRepository>();
+          if (supabaseRepo.currentUser != null) {
+            roomId = await supabaseRepo.createRoom(
+              name: title,
+              targetAmount: baseTargetAmount,
+              targetDate: _deadlineDate ?? _startDate.add(const Duration(days: 30)),
+              note: _noteController.text,
+            );
+          }
+        } catch (e) {
+          debugPrint('Error creating Supabase room: $e');
+        }
 
         final target = TargetItem(
           id: id,
@@ -122,7 +129,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
           note: _noteController.text,
           coverUrl: _coverUrl,
           type: TargetType.nabar,
-          roomId: roomId,
+          roomId: roomId ?? id,
         );
 
         await vm.addTarget(target);

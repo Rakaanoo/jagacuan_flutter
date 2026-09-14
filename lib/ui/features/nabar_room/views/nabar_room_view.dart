@@ -5,6 +5,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../../../data/models/nabar_room.dart';
 import '../../target_list/view_models/target_list_view_model.dart';
+import '../../target_list/views/create_target_modal.dart';
+import '../../../../data/models/target_item.dart';
 import '../../../core/formatters.dart';
 
 class NabarRoomView extends StatefulWidget {
@@ -57,6 +59,56 @@ class _NabarRoomViewState extends State<NabarRoomView> {
         );
         if (userRooms.isNotEmpty) {
           room = userRooms.first;
+        }
+      }
+
+      if (room == null) {
+        try {
+          final vm = context.read<TargetListViewModel>();
+          TargetItem? localTarget;
+
+          if (widget.roomId != 'demo_room' && widget.roomId.isNotEmpty) {
+            localTarget = vm.targets.cast<TargetItem?>().firstWhere(
+              (t) => t?.id == widget.roomId || t?.roomId == widget.roomId,
+              orElse: () => null,
+            );
+          }
+
+          localTarget ??= vm.targets.cast<TargetItem?>().firstWhere(
+            (t) => t?.type == TargetType.nabar,
+            orElse: () => null,
+          );
+
+          if (localTarget != null) {
+            room = NabarRoom(
+              id: localTarget.roomId ?? localTarget.id,
+              name: localTarget.title,
+              targetAmount: localTarget.targetAmount,
+              currentAmount: localTarget.currentAmount,
+              targetDate: localTarget.endDate,
+              ownerId: repo.currentUser?.id ?? 'owner',
+              coverUrl: localTarget.coverUrl,
+              note: localTarget.note,
+              inviteCode: localTarget.roomId ?? localTarget.id,
+              userStatus: 'owner',
+              members: [
+                NabarMember(
+                  id: '1',
+                  userId: repo.currentUser?.id ?? 'owner',
+                  name: repo.currentUser?.userMetadata?['full_name'] ?? 'Saya',
+                  avatarUrl: repo.currentUser?.userMetadata?['avatar_url'],
+                  status: 'approved',
+                  role: 'owner',
+                  avatarBg: '#7C8BFF',
+                ),
+              ],
+              pendingMembers: [],
+              activities: [],
+              pendingActivities: [],
+            );
+          }
+        } catch (e) {
+          debugPrint('Error loading local target fallback: $e');
         }
       }
 
@@ -304,6 +356,12 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => const CreateTargetModal(initialType: TargetType.nabar),
+                        );
                       },
                       icon: const Icon(LucideIcons.plusCircle, size: 18),
                       label: const Text('Buat Target Nabung / Nabar'),

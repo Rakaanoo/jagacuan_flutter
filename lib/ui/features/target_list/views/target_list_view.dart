@@ -594,10 +594,12 @@ class _TargetListViewState extends State<TargetListView> {
       ),
       child: InkWell(
         onTap: () {
-          if (target.type == TargetType.nabar && target.roomId != null) {
+          if (target.type == TargetType.nabar) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => NabarRoomView(roomId: target.roomId!)),
+              MaterialPageRoute(
+                builder: (_) => NabarRoomView(roomId: target.roomId ?? target.id),
+              ),
             );
           } else {
             Navigator.push(

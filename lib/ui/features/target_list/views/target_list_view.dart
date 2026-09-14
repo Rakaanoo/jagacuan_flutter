@@ -138,18 +138,10 @@ class _TargetListViewState extends State<TargetListView> {
                             iconColor: const Color(0xFF818CF8),
                             isDark: isDark,
                             onTap: () {
-                              final supabaseRepo = context.read<SupabaseNabarRepository>();
-                              if (supabaseRepo.currentUser == null) {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => const ConnectGoogleModal(),
-                                );
-                              } else {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const NabarRoomView(roomId: 'demo_room')),
-                                );
-                              }
+                              showDialog(
+                                context: context,
+                                builder: (_) => const ConnectGoogleModal(),
+                              );
                             },
                           ),
                         ],

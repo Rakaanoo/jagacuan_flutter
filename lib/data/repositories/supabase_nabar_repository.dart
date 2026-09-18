@@ -1,6 +1,45 @@
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/nabar_room.dart';
+
+String generate11CharAlphanumericCode() {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  final random = Random.secure();
+  return List.generate(11, (_) => chars[random.nextInt(chars.length)]).join();
+}
+
+String codeToUuid(String code) {
+  final clean = code.trim();
+  if (clean.contains('-') && clean.length == 36) return clean;
+  var hex = '';
+  for (var i = 0; i < clean.length; i++) {
+    hex += clean.codeUnitAt(i).toRadixString(16).padLeft(2, '0');
+  }
+  hex = hex.padRight(32, '0');
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20, 32)}';
+}
+
+String uuidToCode(String uuidStr) {
+  final hex = uuidStr.replaceAll('-', '');
+  var code = '';
+  for (var i = 0; i < 22; i += 2) {
+    if (i + 2 > hex.length) break;
+    final charCode = int.tryParse(hex.substring(i, i + 2), radix: 16) ?? 0;
+    if (charCode == 0) break;
+    code += String.fromCharCode(charCode);
+  }
+  return (code.length == 11) ? code : uuidStr;
+}
+
+String extractCodeFromInput(String input) {
+  var clean = input.trim();
+  if (clean.contains('/room/')) {
+    final parts = clean.split('/room/');
+    clean = parts.last.split('?').first.split('#').first;
+  }
+  return clean;
+}
 
 class SupabaseNabarRepository extends ChangeNotifier {
   final SupabaseClient _client = Supabase.instance.client;
@@ -49,21 +88,26 @@ class SupabaseNabarRepository extends ChangeNotifier {
     final user = currentUser;
     if (user == null) throw Exception('Anda harus login terlebih dahulu.');
 
-    String cleanCode = inviteCode.trim();
-    if (cleanCode.contains('/room/')) {
-      final parts = cleanCode.split('/room/');
-      cleanCode = parts.last.split('?').first.split('#').first;
-    }
+    final cleanCode = extractCodeFromInput(inviteCode);
+    if (cleanCode.isEmpty) throw Exception('Kode atau link room tidak boleh kosong.');
 
-    if (cleanCode.isEmpty) throw Exception('Link atau ID room tidak boleh kosong.');
+    final targetUuid = codeToUuid(cleanCode);
 
-    final roomRes = await _client
+    var roomRes = await _client
         .from('rooms')
         .select('id, owner_id')
-        .eq('id', cleanCode)
+        .eq('id', targetUuid)
         .maybeSingle();
 
-    if (roomRes == null) throw Exception('Ruang Nabung dengan link/ID tersebut tidak ditemukan.');
+    if (roomRes == null) {
+      roomRes = await _client
+          .from('rooms')
+          .select('id, owner_id')
+          .eq('id', cleanCode)
+          .maybeSingle();
+    }
+
+    if (roomRes == null) throw Exception('Ruang Nabung dengan kode "$cleanCode" tidak ditemukan.');
 
     final roomId = roomRes['id'].toString();
     final isOwner = roomRes['owner_id']?.toString() == user.id;
@@ -93,7 +137,11 @@ class SupabaseNabarRepository extends ChangeNotifier {
     final user = currentUser;
     if (user == null) throw Exception('Anda harus login terlebih dahulu.');
 
+    final code11 = generate11CharAlphanumericCode();
+    final customUuid = codeToUuid(code11);
+
     final response = await _client.from('rooms').insert({
+      'id': customUuid,
       'title': name,
       'target_amount': targetAmount,
       'current_amount': 0,
@@ -231,7 +279,7 @@ class SupabaseNabarRepository extends ChangeNotifier {
         ownerId: ownerId,
         note: roomRes['note'],
         coverUrl: roomRes['cover_image'],
-        inviteCode: roomRes['id'].toString(),
+        inviteCode: uuidToCode(roomRes['id'].toString()),
         userStatus: userStatus,
         members: members,
         pendingMembers: pendingMembers,

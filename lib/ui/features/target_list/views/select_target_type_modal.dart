@@ -247,7 +247,7 @@ class SelectTargetTypeModal extends StatelessWidget {
               controller: controller,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: 'https://jagacuan-app.vercel.app/room/...',
+                hintText: 'jagacuan://room/... atau ID Room',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),

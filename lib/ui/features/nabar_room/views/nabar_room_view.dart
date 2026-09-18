@@ -494,7 +494,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
       );
     }
 
-    final roomLink = 'https://jagacuan-app.vercel.app/room/${room.id}';
+    final roomLink = 'jagacuan://room/${room.id}';
 
     return Scaffold(
       appBar: AppBar(

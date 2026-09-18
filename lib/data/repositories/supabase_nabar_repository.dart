@@ -24,13 +24,15 @@ class SupabaseNabarRepository extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Use custom scheme deep link on Mobile, or null (current URL) on Web
       final redirectUrl = kIsWeb ? null : 'io.supabase.jagacuan://login-callback';
       await _client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: redirectUrl,
         authScreenLaunchMode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication,
       );
+    } catch (e) {
+      debugPrint('Google Sign-In Error: $e');
+      rethrow;
     } finally {
       _isSigningIn = false;
       notifyListeners();

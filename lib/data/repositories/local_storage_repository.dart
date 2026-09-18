@@ -4,34 +4,13 @@ import '../models/target_item.dart';
 import '../models/transaction_item.dart';
 
 class LocalStorageRepository {
-  static const String _targetsKey = 'jagacuan_targets_v1';
+  static const String _targetsKey = 'jagacuan_targets_v2';
 
   Future<List<TargetItem>> getTargets() async {
     final prefs = await SharedPreferences.getInstance();
     final String? jsonString = prefs.getString(_targetsKey);
     if (jsonString == null || jsonString.isEmpty) {
-      final sampleTargets = [
-        TargetItem(
-          id: 'sample_1',
-          title: 'Nabung Laptop Gaming',
-          targetAmount: 15000000,
-          currentAmount: 4500000,
-          startDate: DateTime.now().subtract(const Duration(days: 30)),
-          endDate: DateTime.now().add(const Duration(days: 90)),
-          type: TargetType.target,
-        ),
-        TargetItem(
-          id: 'sample_2',
-          title: 'gitu',
-          targetAmount: 100000,
-          currentAmount: 110000,
-          startDate: DateTime.now().subtract(const Duration(days: 60)),
-          endDate: DateTime.now().subtract(const Duration(days: 5)),
-          type: TargetType.target,
-        ),
-      ];
-      await saveTargets(sampleTargets);
-      return sampleTargets;
+      return [];
     }
     try {
       final List<dynamic> jsonList = json.decode(jsonString);

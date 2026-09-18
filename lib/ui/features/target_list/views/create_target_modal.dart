@@ -29,6 +29,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
+  final _memberLimitController = TextEditingController(text: '10');
 
   DateTime _startDate = DateTime.now();
   DateTime? _deadlineDate;
@@ -49,6 +50,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
     _titleController.dispose();
     _amountController.dispose();
     _noteController.dispose();
+    _memberLimitController.dispose();
     super.dispose();
   }
 
@@ -355,6 +357,45 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
               ),
             ),
             const SizedBox(height: 14),
+
+            if (_selectedType == TargetType.nabar) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderCol, width: 1.2),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Batas Maksimal Anggota (Orang)',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: labelColor),
+                        ),
+                        Icon(LucideIcons.users, size: 16, color: labelColor),
+                      ],
+                    ),
+                    TextField(
+                      controller: _memberLimitController,
+                      keyboardType: TextInputType.number,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15),
+                      decoration: InputDecoration(
+                        hintText: 'Contoh: 10',
+                        hintStyle: TextStyle(fontSize: 14, color: mutedColor),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
 
             // Field 3: Tanggal Mulai
             Text(AppTranslations.tr(lang, 'create.start_date'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: mutedColor)),

@@ -106,12 +106,12 @@ class SelectTargetTypeModal extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Option 4: Gabung Room Nabar (Kode Invite)
+          // Option 4: Gabung Room Nabar (Link Room)
           _buildOptionCard(
             context,
-            icon: LucideIcons.userPlus,
+            icon: LucideIcons.link,
             title: 'Gabung Room Nabar',
-            subtitle: 'Masukan kode invite dari teman untuk bergabung ke room tabungan',
+            subtitle: 'Tempel link room dari teman untuk mengajukan bergabung ke room',
             cardBg: cardBg,
             cardBorder: cardBorder,
             iconBg: iconBg,
@@ -241,13 +241,13 @@ class SelectTargetTypeModal extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Masukkan Kode Invite / ID Room yang diberikan oleh Host:'),
+            const Text('Tempel Link Room / URL yang dibagikan oleh Host:'),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: 'Contoh: c4b12a8e',
+                hintText: 'https://jagacuan-app.vercel.app/room/...',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
@@ -260,16 +260,18 @@ class SelectTargetTypeModal extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              final code = controller.text.trim();
-              if (code.isEmpty) return;
+              final linkInput = controller.text.trim();
+              if (linkInput.isEmpty) return;
 
               Navigator.pop(ctx);
               try {
                 final repo = context.read<SupabaseNabarRepository>();
-                final room = await repo.joinRoomByInviteCode(code);
+                final room = await repo.joinRoomByInviteCode(linkInput);
                 if (room != null && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Berhasil bergabung ke room "${room.name}"!')),
+                    SnackBar(
+                      content: Text('Permintaan bergabung ke "${room.name}" telah dikirim! Menunggu verifikasi Host.'),
+                    ),
                   );
                   Navigator.push(
                     context,
@@ -288,7 +290,7 @@ class SelectTargetTypeModal extends StatelessWidget {
               backgroundColor: const Color(0xFF10B981),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Gabung Room'),
+            child: const Text('Minta Bergabung'),
           ),
         ],
       ),

@@ -47,18 +47,24 @@ class SupabaseNabarRepository extends ChangeNotifier {
     final user = currentUser;
     if (user == null) throw Exception('Anda harus login terlebih dahulu.');
 
-    final cleanCode = inviteCode.trim();
-    if (cleanCode.isEmpty) throw Exception('Kode invite tidak boleh kosong.');
+    String cleanCode = inviteCode.trim();
+    if (cleanCode.contains('/room/')) {
+      final parts = cleanCode.split('/room/');
+      cleanCode = parts.last.split('?').first.split('#').first;
+    }
+
+    if (cleanCode.isEmpty) throw Exception('Link atau ID room tidak boleh kosong.');
 
     final roomRes = await _client
         .from('rooms')
-        .select('id')
+        .select('id, owner_id')
         .eq('id', cleanCode)
         .maybeSingle();
 
-    if (roomRes == null) throw Exception('Ruang Nabung dengan ID "$cleanCode" tidak ditemukan.');
+    if (roomRes == null) throw Exception('Ruang Nabung dengan link/ID tersebut tidak ditemukan.');
 
     final roomId = roomRes['id'].toString();
+    final isOwner = roomRes['owner_id']?.toString() == user.id;
 
     final meta = user.userMetadata ?? {};
     final fullName = meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'Member';
@@ -69,7 +75,7 @@ class SupabaseNabarRepository extends ChangeNotifier {
       'user_id': user.id,
       'user_name': fullName,
       'avatar_url': avatarUrl,
-      'status': 'approved',
+      'status': isOwner ? 'approved' : 'pending',
     }, onConflict: 'room_id, user_id');
 
     return getRoomById(roomId);

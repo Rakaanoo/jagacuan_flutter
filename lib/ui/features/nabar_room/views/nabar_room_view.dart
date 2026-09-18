@@ -181,6 +181,28 @@ class _NabarRoomViewState extends State<NabarRoomView> {
     await _fetchRoom();
   }
 
+  Future<void> _approveMember(String memberUserId, String name) async {
+    final repo = context.read<SupabaseNabarRepository>();
+    await repo.approveMember(_room!.id, memberUserId);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$name resmi disetujui bergabung ke room!')),
+      );
+    }
+    await _fetchRoom();
+  }
+
+  Future<void> _rejectMember(String memberUserId, String name) async {
+    final repo = context.read<SupabaseNabarRepository>();
+    await repo.rejectMember(_room!.id, memberUserId);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Permintaan dari $name ditolak.')),
+      );
+    }
+    await _fetchRoom();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -385,7 +407,94 @@ class _NabarRoomViewState extends State<NabarRoomView> {
 
     final room = _room!;
     final isOwner = room.userStatus == 'owner';
+    final isPendingMember = room.userStatus == 'pending_member';
     final currency = context.watch<TargetListViewModel>().currency;
+
+    final bg = isDark ? const Color(0xFF131418) : const Color(0xFFFAF7F2);
+    final cardBg = isDark ? const Color(0xFF222432) : const Color(0xFFEFEADF);
+    final cardBorder = isDark ? const Color(0xFF333748) : const Color(0xFFDDD5C7);
+    final textColor = isDark ? Colors.white : const Color(0xFF2C2418);
+    final mutedTextColor = isDark ? const Color(0xFFA0A5B5) : const Color(0xFF7A6F60);
+
+    if (isPendingMember) {
+      return Scaffold(
+        backgroundColor: bg,
+        appBar: AppBar(
+          backgroundColor: bg,
+          elevation: 0,
+          title: Text(room.name, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+          leading: IconButton(
+            icon: Icon(LucideIcons.arrowLeft, color: textColor),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: cardBorder, width: 1.2),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD97706).withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(LucideIcons.clock, size: 28, color: Color(0xFFD97706)),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Menunggu Verifikasi Host',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Permintaan Anda untuk bergabung di "${room.name}" telah dikirim. Pemilik ruang (Host) perlu menyetujui permintaan Anda sebelum Anda dapat mengakses isi room.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: mutedTextColor,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _fetchRoom,
+                      icon: const Icon(LucideIcons.refreshCw, size: 16),
+                      label: const Text('Cek Status Verifikasi'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7C8BFF),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final roomLink = 'https://jagacuan-app.vercel.app/room/${room.id}';
 
     return Scaffold(
       appBar: AppBar(
@@ -394,8 +503,9 @@ class _NabarRoomViewState extends State<NabarRoomView> {
           IconButton(
             icon: const Icon(LucideIcons.share2),
             onPressed: () {
+              Clipboard.setData(ClipboardData(text: roomLink));
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Link Ruang: https://jagacuan-app.vercel.app/room/${room.id}')),
+                const SnackBar(content: Text('Link Ruang berhasil disalin!')),
               );
             },
           )
@@ -460,7 +570,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             ),
             const SizedBox(height: 20),
 
-            // Invite Code Card
+            // Room Link Card
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
@@ -470,29 +580,31 @@ class _NabarRoomViewState extends State<NabarRoomView> {
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.keyRound, size: 20, color: Color(0xFF7C8BFF)),
+                  const Icon(LucideIcons.link, size: 20, color: Color(0xFF7C8BFF)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Kode Invite Room', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        const Text('Link Undangan Room', style: TextStyle(fontSize: 11, color: Colors.grey)),
                         SelectableText(
-                          room.inviteCode,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 0.5),
+                          roomLink,
+                          maxLines: 1,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
                   OutlinedButton.icon(
                     onPressed: () {
-                      Clipboard.setData(ClipboardData(text: room.inviteCode));
+                      Clipboard.setData(ClipboardData(text: roomLink));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Kode invite berhasil disalin!')),
+                        const SnackBar(content: Text('Link undangan berhasil disalin!')),
                       );
                     },
                     icon: const Icon(LucideIcons.copy, size: 14),
-                    label: const Text('Salin'),
+                    label: const Text('Salin Link'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       visualDensity: VisualDensity.compact,
@@ -503,7 +615,87 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             ),
             const SizedBox(height: 20),
 
-            // Pending Host Verification Section (HOST ONLY)
+            // Pending Member Approval Section (HOST ONLY)
+            if (isOwner && room.pendingMembers.isNotEmpty) ...[
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF23242A) : const Color(0xFFFAF6EF),
+                  border: Border.all(color: const Color(0xFF3B82F6)),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(LucideIcons.userPlus, color: Color(0xFF3B82F6), size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Permintaan Bergabung Anggota (${room.pendingMembers.length})',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ...room.pendingMembers.map((mem) => Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1C1D22) : const Color(0xFFEFEADF),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundImage: mem.avatarUrl != null && mem.avatarUrl!.isNotEmpty
+                                    ? NetworkImage(mem.avatarUrl!)
+                                    : null,
+                                child: (mem.avatarUrl == null || mem.avatarUrl!.isEmpty)
+                                    ? Text(mem.name.isNotEmpty ? mem.name[0].toUpperCase() : 'M')
+                                    : null,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(mem.name,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              ),
+                              Row(
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: () => _approveMember(mem.userId, mem.name),
+                                    icon: const Icon(LucideIcons.check, size: 14),
+                                    label: const Text('Setujui'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF16A34A),
+                                      foregroundColor: Colors.white,
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  OutlinedButton(
+                                    onPressed: () => _rejectMember(mem.userId, mem.name),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: const Color(0xFFDC2626),
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    ),
+                                    child: const Text('Tolak'),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                        )),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // Pending Host Verification Section for Deposits (HOST ONLY)
             if (isOwner && room.pendingActivities.isNotEmpty) ...[
               Container(
                 padding: const EdgeInsets.all(14),

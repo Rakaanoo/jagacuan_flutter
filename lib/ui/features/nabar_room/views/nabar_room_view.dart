@@ -8,6 +8,7 @@ import '../../target_list/view_models/target_list_view_model.dart';
 import '../../target_list/views/create_target_modal.dart';
 import '../../../../data/models/target_item.dart';
 import '../../../core/formatters.dart';
+import '../../../core/i18n.dart';
 
 class NabarRoomView extends StatefulWidget {
   final String roomId;
@@ -209,6 +210,9 @@ class _NabarRoomViewState extends State<NabarRoomView> {
     final isDark = theme.brightness == Brightness.dark;
     final repo = context.watch<SupabaseNabarRepository>();
     final currentUser = repo.currentUser;
+    final vm = context.watch<TargetListViewModel>();
+    final lang = vm.language;
+    final currency = vm.currency;
 
     if (currentUser == null) {
       final bg = isDark ? const Color(0xFF131418) : const Color(0xFFFAF6EF);
@@ -222,7 +226,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
         appBar: AppBar(
           backgroundColor: bg,
           elevation: 0,
-          title: Text('Ruang Nabar', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+          title: Text(AppTranslations.tr(lang, 'nabar.room_title'), style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
           leading: IconButton(
             icon: Icon(LucideIcons.arrowLeft, color: textColor),
             onPressed: () => Navigator.pop(context),
@@ -256,7 +260,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Google Belum Terhubung',
+                    AppTranslations.tr(lang, 'nabar.google_not_connected'),
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
@@ -265,7 +269,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Hanya diperlukan untuk Ruang Nabar',
+                    AppTranslations.tr(lang, 'nabar.google_required_desc'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -288,7 +292,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                         }
                       },
                       icon: const Icon(LucideIcons.logIn, size: 18),
-                      label: const Text('Hubungkan Google'),
+                      label: Text(AppTranslations.tr(lang, 'nabar.connect_google_btn')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF808CFF),
                         foregroundColor: Colors.white,
@@ -325,7 +329,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
         appBar: AppBar(
           backgroundColor: bg,
           elevation: 0,
-          title: Text('Ruang Nabar', style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
+          title: Text(AppTranslations.tr(lang, 'nabar.room_title'), style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
           leading: IconButton(
             icon: Icon(LucideIcons.arrowLeft, color: textColor),
             onPressed: () => Navigator.pop(context),
@@ -355,7 +359,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Belum Ada Ruang Nabung',
+                    AppTranslations.tr(lang, 'nabar.no_room_title'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -364,7 +368,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Anda belum memiliki atau bergabung di Ruang Nabung. Buat ruang baru atau gabung dengan kode invite dari teman Anda.',
+                    AppTranslations.tr(lang, 'nabar.no_room_desc'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -386,7 +390,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                         );
                       },
                       icon: const Icon(LucideIcons.plusCircle, size: 18),
-                      label: const Text('Buat Target Nabung / Nabar'),
+                      label: Text(AppTranslations.tr(lang, 'nabar.create_room_btn')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF7C8BFF),
                         foregroundColor: Colors.white,
@@ -408,7 +412,6 @@ class _NabarRoomViewState extends State<NabarRoomView> {
     final room = _room!;
     final isOwner = room.userStatus == 'owner';
     final isPendingMember = room.userStatus == 'pending_member';
-    final currency = context.watch<TargetListViewModel>().currency;
 
     final bg = isDark ? const Color(0xFF131418) : const Color(0xFFFAF7F2);
     final cardBg = isDark ? const Color(0xFF222432) : const Color(0xFFEFEADF);
@@ -452,7 +455,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Menunggu Verifikasi Host',
+                    AppTranslations.tr(lang, 'nabar.pending_verification_title'),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -461,7 +464,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Permintaan Anda untuk bergabung di "${room.name}" telah dikirim. Pemilik ruang (Host) perlu menyetujui permintaan Anda sebelum Anda dapat mengakses isi room.',
+                    AppTranslations.tr(lang, 'nabar.pending_verification_desc').replaceAll('{name}', room.name),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
@@ -475,7 +478,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     child: ElevatedButton.icon(
                       onPressed: _fetchRoom,
                       icon: const Icon(LucideIcons.refreshCw, size: 16),
-                      label: const Text('Cek Status Verifikasi'),
+                      label: Text(AppTranslations.tr(lang, 'nabar.check_status_btn')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF7C8BFF),
                         foregroundColor: Colors.white,
@@ -500,11 +503,11 @@ class _NabarRoomViewState extends State<NabarRoomView> {
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.copy),
-            tooltip: 'Salin Kode Room',
+            tooltip: AppTranslations.tr(lang, 'nabar.copy_code'),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: room.inviteCode));
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Kode Room ${room.inviteCode} berhasil disalin!')),
+                SnackBar(content: Text(AppTranslations.tr(lang, 'nabar.code_copied').replaceAll('{code}', room.inviteCode))),
               );
             },
           )
@@ -525,7 +528,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Terkumpul:', style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
+                        Text(AppTranslations.tr(lang, 'nabar.collected'), style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
                         Text('${room.progressPercentage.toStringAsFixed(0)}%',
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       ],
@@ -535,7 +538,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                       formatRupiah(room.currentAmount, currency),
                       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
                     ),
-                    Text('Target: ${formatRupiah(room.targetAmount, currency)}', style: const TextStyle(fontSize: 12)),
+                    Text('${AppTranslations.tr(lang, 'nabar.target')} ${formatRupiah(room.targetAmount, currency)}', style: const TextStyle(fontSize: 12)),
                     const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(999),
@@ -559,7 +562,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
               child: ElevatedButton.icon(
                 onPressed: () => _showQuickSetorModal(context),
                 icon: const Icon(LucideIcons.plusCircle),
-                label: const Text('Catat Setoran Tabungan', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: Text(AppTranslations.tr(lang, 'nabar.add_deposit'), style: const TextStyle(fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF16A34A),
                   foregroundColor: Colors.white,
@@ -585,7 +588,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Kode Room (6 Digit)', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        Text(AppTranslations.tr(lang, 'nabar.room_code_label'), style: const TextStyle(fontSize: 11, color: Colors.grey)),
                         const SizedBox(height: 2),
                         SelectableText(
                           room.inviteCode,
@@ -598,11 +601,11 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: room.inviteCode));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Kode room disalin: ${room.inviteCode}')),
+                        SnackBar(content: Text(AppTranslations.tr(lang, 'nabar.code_copied').replaceAll('{code}', room.inviteCode))),
                       );
                     },
                     icon: const Icon(LucideIcons.copy, size: 14),
-                    label: const Text('Salin Kode'),
+                    label: Text(AppTranslations.tr(lang, 'nabar.copy_code')),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       visualDensity: VisualDensity.compact,
@@ -630,7 +633,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                         const Icon(LucideIcons.userPlus, color: Color(0xFF3B82F6), size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          'Permintaan Bergabung Anggota (${room.pendingMembers.length})',
+                          AppTranslations.tr(lang, 'nabar.pending_member_requests').replaceAll('{count}', '${room.pendingMembers.length}'),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                       ],
@@ -664,7 +667,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                                   ElevatedButton.icon(
                                     onPressed: () => _approveMember(mem.userId, mem.name),
                                     icon: const Icon(LucideIcons.check, size: 14),
-                                    label: const Text('Setujui'),
+                                    label: Text(AppTranslations.tr(lang, 'nabar.approve')),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF16A34A),
                                       foregroundColor: Colors.white,
@@ -680,7 +683,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                                       visualDensity: VisualDensity.compact,
                                       padding: const EdgeInsets.symmetric(horizontal: 8),
                                     ),
-                                    child: const Text('Tolak'),
+                                    child: Text(AppTranslations.tr(lang, 'nabar.reject')),
                                   ),
                                 ],
                               )
@@ -710,7 +713,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                         const Icon(LucideIcons.clock, color: Color(0xFFD97706), size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          'Setoran Menunggu Verifikasi Host (${room.pendingActivities.length})',
+                          AppTranslations.tr(lang, 'nabar.pending_deposit_requests').replaceAll('{count}', '${room.pendingActivities.length}'),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                       ],
@@ -735,7 +738,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('${act.name} - +${formatRupiah(act.amount)}',
+                                    Text('${act.name} - +${formatRupiah(act.amount, currency)}',
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                                     Text('${formatTimeAgo(act.timestamp)} • Pending Host',
                                         style: const TextStyle(fontSize: 11, color: Colors.grey)),
@@ -767,9 +770,9 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Anggota Nabar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(AppTranslations.tr(lang, 'nabar.members_title'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 Chip(
-                  label: Text('${room.members.length} Orang', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  label: Text(AppTranslations.tr(lang, 'nabar.member_count').replaceAll('{count}', '${room.members.length}'), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                   visualDensity: VisualDensity.compact,
                 ),
               ],
@@ -813,10 +816,10 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             const SizedBox(height: 20),
 
             // Recent Activities
-            const Text('Aktivitas Terbaru', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(AppTranslations.tr(lang, 'nabar.recent_activities'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 10),
             if (room.activities.isEmpty)
-              const Text('Belum ada setoran terverifikasi.')
+              Text(AppTranslations.tr(lang, 'nabar.no_activities'))
             else
               ...room.activities.map((act) => ListTile(
                     leading: CircleAvatar(
@@ -825,7 +828,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     ),
                     title: Text(act.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(formatTimeAgo(act.timestamp)),
-                    trailing: Text('+${formatRupiah(act.amount)}',
+                    trailing: Text('+${formatRupiah(act.amount, currency)}',
                         style: const TextStyle(color: Color(0xFF16A34A), fontWeight: FontWeight.bold)),
                   )),
           ],
@@ -835,6 +838,10 @@ class _NabarRoomViewState extends State<NabarRoomView> {
   }
 
   void _showQuickSetorModal(BuildContext context) {
+    final vm = context.read<TargetListViewModel>();
+    final lang = vm.language;
+    final currency = vm.currency;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -849,14 +856,14 @@ class _NabarRoomViewState extends State<NabarRoomView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Setor Uang ke Room', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(AppTranslations.tr(lang, 'nabar.deposit_modal_title'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 14),
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
               autofocus: true,
               decoration: InputDecoration(
-                labelText: 'Jumlah Nominal (Rp)',
+                labelText: AppTranslations.tr(lang, 'nabar.amount_label').replaceAll('{currency}', currency.toUpperCase()),
                 hintText: '50.000',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
               ),
@@ -872,7 +879,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                child: const Text('Kirim Setoran', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(AppTranslations.tr(lang, 'nabar.send_deposit_btn'), style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],

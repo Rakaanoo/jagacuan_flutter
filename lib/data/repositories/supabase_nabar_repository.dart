@@ -29,7 +29,14 @@ String uuidToCode(String uuidStr) {
     if (charCode == 0) break;
     code += String.fromCharCode(charCode);
   }
-  return (code.length == 6 || code.length == 11) ? code : uuidStr;
+  if (code.length == 6 || code.length == 11) {
+    return code.toUpperCase();
+  }
+  // Fallback for standard random UUIDs: derive clean 6-char uppercase alphanumeric code
+  if (hex.length >= 6) {
+    return hex.substring(0, 6).toUpperCase();
+  }
+  return uuidStr;
 }
 
 String extractCodeFromInput(String input) {
@@ -105,6 +112,17 @@ class SupabaseNabarRepository extends ChangeNotifier {
           .select('id, owner_id')
           .eq('id', cleanCode)
           .maybeSingle();
+    }
+
+    if (roomRes == null) {
+      final list = await _client
+          .from('rooms')
+          .select('id, owner_id')
+          .ilike('id', '${cleanCode.toLowerCase()}%')
+          .limit(1);
+      if (list.isNotEmpty) {
+        roomRes = list.first;
+      }
     }
 
     if (roomRes == null) throw Exception('Ruang Nabung dengan kode "$cleanCode" tidak ditemukan.');

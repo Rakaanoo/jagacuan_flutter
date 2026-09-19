@@ -43,7 +43,7 @@ class _TargetListViewState extends State<TargetListView> {
     if (!prompted && mounted) {
       await localRepo.setPromptedInitialNotification();
       if (mounted) {
-        showNotificationPermissionDialog(context);
+        checkAndShowNotificationPermissionDialog(context);
       }
     }
   }

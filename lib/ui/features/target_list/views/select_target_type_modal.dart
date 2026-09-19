@@ -106,12 +106,12 @@ class SelectTargetTypeModal extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Option 4: Gabung Room Nabar (Kode 6 Digit)
+          // Option 4: Gabung Room Nabar
           _buildOptionCard(
             context,
             icon: LucideIcons.keyRound,
-            title: 'Gabung Room Nabar',
-            subtitle: 'Masukkan 6 digit kode room dari teman untuk bergabung',
+            title: AppTranslations.tr(vm.language, 'select_type.join_room'),
+            subtitle: AppTranslations.tr(vm.language, 'select_type.join_room_desc'),
             cardBg: cardBg,
             cardBorder: cardBorder,
             iconBg: iconBg,
@@ -128,7 +128,7 @@ class SelectTargetTypeModal extends StatelessWidget {
                 );
               } else {
                 Navigator.pop(context);
-                _showJoinRoomDialog(context);
+                _showJoinRoomDialog(context, vm.language);
               }
             },
           ),
@@ -230,18 +230,18 @@ class SelectTargetTypeModal extends StatelessWidget {
     );
   }
 
-  void _showJoinRoomDialog(BuildContext context) {
+  void _showJoinRoomDialog(BuildContext context, String lang) {
     final controller = TextEditingController();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Gabung Room Nabar', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(AppTranslations.tr(lang, 'select_type.join_dialog_title'), style: const TextStyle(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Masukkan 6 karakter kode room (huruf & angka):'),
+            Text(AppTranslations.tr(lang, 'select_type.join_dialog_prompt')),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
@@ -261,7 +261,7 @@ class SelectTargetTypeModal extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
+            child: Text(AppTranslations.tr(lang, 'common.cancel')),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -295,7 +295,7 @@ class SelectTargetTypeModal extends StatelessWidget {
               backgroundColor: const Color(0xFF10B981),
               foregroundColor: Colors.white,
             ),
-            child: const Text('Minta Bergabung'),
+            child: Text(AppTranslations.tr(lang, 'select_type.join_dialog_submit')),
           ),
         ],
       ),

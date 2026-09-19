@@ -448,7 +448,7 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                         );
                       },
                       icon: const Icon(LucideIcons.plus, size: 18),
-                      label: const Text('Buat Room Kolaborasi Baru'),
+                      label: Text(AppTranslations.tr(vm.language, 'connect_google.create_new_room')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: accentCol,
                         foregroundColor: Colors.white,

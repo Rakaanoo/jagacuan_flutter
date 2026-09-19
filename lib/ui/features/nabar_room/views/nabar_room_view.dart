@@ -494,18 +494,17 @@ class _NabarRoomViewState extends State<NabarRoomView> {
       );
     }
 
-    final roomLink = 'jagacuan://room/${room.inviteCode}';
-
     return Scaffold(
       appBar: AppBar(
         title: Text(room.name, style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(LucideIcons.share2),
+            icon: const Icon(LucideIcons.copy),
+            tooltip: 'Salin Kode Room',
             onPressed: () {
-              Clipboard.setData(ClipboardData(text: roomLink));
+              Clipboard.setData(ClipboardData(text: room.inviteCode));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Link Ruang berhasil disalin!')),
+                SnackBar(content: Text('Kode Room ${room.inviteCode} berhasil disalin!')),
               );
             },
           )
@@ -570,7 +569,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             ),
             const SizedBox(height: 20),
 
-            // Room Code & Link Card
+            // Room Code Card (Kode Room 6 Digit)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -578,73 +577,36 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: isDark ? const Color(0xFF333748) : const Color(0xFFDDD5C7)),
               ),
-              child: Column(
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      const Icon(LucideIcons.keyRound, size: 20, color: Color(0xFF7C8BFF)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Kode Room (11 Karakter)', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                            SelectableText(
-                              room.inviteCode,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1.0),
-                            ),
-                          ],
+                  const Icon(LucideIcons.keyRound, size: 22, color: Color(0xFF7C8BFF)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Kode Room (6 Digit)', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        const SizedBox(height: 2),
+                        SelectableText(
+                          room.inviteCode,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, letterSpacing: 2.0),
                         ),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: room.inviteCode));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Kode room disalin: ${room.inviteCode}')),
-                          );
-                        },
-                        icon: const Icon(LucideIcons.copy, size: 14),
-                        label: const Text('Salin Kode'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const Divider(height: 20),
-                  Row(
-                    children: [
-                      const Icon(LucideIcons.link, size: 20, color: Color(0xFF10B981)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Link Undangan Room', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                            SelectableText(
-                              roomLink,
-                              maxLines: 1,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                          ],
-                        ),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: roomLink));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Link undangan disalin!')),
-                          );
-                        },
-                        icon: const Icon(LucideIcons.copy, size: 14),
-                        label: const Text('Salin Link'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    ],
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: room.inviteCode));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Kode room disalin: ${room.inviteCode}')),
+                      );
+                    },
+                    icon: const Icon(LucideIcons.copy, size: 14),
+                    label: const Text('Salin Kode'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                 ],
               ),

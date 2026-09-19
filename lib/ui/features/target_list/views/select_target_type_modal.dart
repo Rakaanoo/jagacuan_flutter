@@ -106,12 +106,12 @@ class SelectTargetTypeModal extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Option 4: Gabung Room Nabar (Link Room)
+          // Option 4: Gabung Room Nabar (Kode 6 Digit)
           _buildOptionCard(
             context,
-            icon: LucideIcons.link,
+            icon: LucideIcons.keyRound,
             title: 'Gabung Room Nabar',
-            subtitle: 'Tempel link room dari teman untuk mengajukan bergabung ke room',
+            subtitle: 'Masukkan 6 digit kode room dari teman untuk bergabung',
             cardBg: cardBg,
             cardBorder: cardBorder,
             iconBg: iconBg,
@@ -241,14 +241,19 @@ class SelectTargetTypeModal extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Tempel Link Room / URL yang dibagikan oleh Host:'),
+            const Text('Masukkan 6 digit angka kode room:'),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
               autofocus: true,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 3.0),
+              textAlign: TextAlign.center,
               decoration: InputDecoration(
-                hintText: 'jagacuan://room/... atau ID Room',
+                hintText: '123456',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                counterText: '',
               ),
             ),
           ],
@@ -260,13 +265,13 @@ class SelectTargetTypeModal extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              final linkInput = controller.text.trim();
-              if (linkInput.isEmpty) return;
+              final codeInput = controller.text.trim();
+              if (codeInput.isEmpty) return;
 
               Navigator.pop(ctx);
               try {
                 final repo = context.read<SupabaseNabarRepository>();
-                final room = await repo.joinRoomByInviteCode(linkInput);
+                final room = await repo.joinRoomByInviteCode(codeInput);
                 if (room != null && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

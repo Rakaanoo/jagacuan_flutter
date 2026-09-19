@@ -3,10 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/nabar_room.dart';
 
-String generate11CharAlphanumericCode() {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+String generate6DigitNumericCode() {
   final random = Random.secure();
-  return List.generate(11, (_) => chars[random.nextInt(chars.length)]).join();
+  final num = 100000 + random.nextInt(900000);
+  return num.toString();
 }
 
 String codeToUuid(String code) {
@@ -23,13 +23,13 @@ String codeToUuid(String code) {
 String uuidToCode(String uuidStr) {
   final hex = uuidStr.replaceAll('-', '');
   var code = '';
-  for (var i = 0; i < 22; i += 2) {
+  for (var i = 0; i < hex.length; i += 2) {
     if (i + 2 > hex.length) break;
     final charCode = int.tryParse(hex.substring(i, i + 2), radix: 16) ?? 0;
     if (charCode == 0) break;
     code += String.fromCharCode(charCode);
   }
-  return (code.length == 11) ? code : uuidStr;
+  return (code.length == 6 || code.length == 11) ? code : uuidStr;
 }
 
 String extractCodeFromInput(String input) {
@@ -137,8 +137,8 @@ class SupabaseNabarRepository extends ChangeNotifier {
     final user = currentUser;
     if (user == null) throw Exception('Anda harus login terlebih dahulu.');
 
-    final code11 = generate11CharAlphanumericCode();
-    final customUuid = codeToUuid(code11);
+    final code6 = generate6DigitNumericCode();
+    final customUuid = codeToUuid(code6);
 
     final response = await _client.from('rooms').insert({
       'id': customUuid,

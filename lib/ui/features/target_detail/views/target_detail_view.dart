@@ -9,6 +9,7 @@ import '../../../core/formatters.dart';
 import '../../../core/i18n.dart';
 
 import '../../../core/notification_permission_dialog.dart';
+import '../../../../core/services/notification_service.dart';
 
 class TargetDetailView extends StatefulWidget {
   final String targetId;
@@ -83,6 +84,25 @@ class _TargetDetailViewState extends State<TargetDetailView> {
         await _saveAlarmSettings(false, _selectedHour, _selectedMinute, _alarmDayKey);
         return;
       }
+
+      final vm = context.read<TargetListViewModel>();
+      final target = vm.targets.cast<TargetItem?>().firstWhere(
+        (t) => t?.id == widget.targetId,
+        orElse: () => null,
+      );
+
+      if (target != null) {
+        final remaining = (target.targetAmount - target.currentAmount).clamp(0.0, double.infinity);
+        await NotificationService().scheduleTargetReminder(
+          targetIdHash: target.id.hashCode,
+          targetTitle: target.title,
+          hour: _selectedHour,
+          minute: _selectedMinute,
+          remainingAmount: remaining,
+        );
+      }
+    } else {
+      await NotificationService().cancelReminder(widget.targetId.hashCode);
     }
 
     setState(() {

@@ -3,10 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/nabar_room.dart';
 
-String generate6DigitNumericCode() {
+String generate6CharAlphanumericCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   final random = Random.secure();
-  final num = 100000 + random.nextInt(900000);
-  return num.toString();
+  return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
 }
 
 String codeToUuid(String code) {
@@ -137,7 +137,7 @@ class SupabaseNabarRepository extends ChangeNotifier {
     final user = currentUser;
     if (user == null) throw Exception('Anda harus login terlebih dahulu.');
 
-    final code6 = generate6DigitNumericCode();
+    final code6 = generate6CharAlphanumericCode();
     final customUuid = codeToUuid(code6);
 
     final response = await _client.from('rooms').insert({

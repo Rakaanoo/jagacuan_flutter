@@ -12,24 +12,17 @@ Future<void> showNotificationPermissionDialog(BuildContext context) async {
 
 Future<bool> checkAndShowNotificationPermissionDialog(BuildContext context) async {
   var status = await Permission.notification.status;
-  if (status.isDenied) {
-    status = await Permission.notification.request();
+  if (status.isGranted) return true;
+
+  // Direct Native OS System Dialog Request (Android/iOS System Prompt)
+  status = await Permission.notification.request();
+  if (status.isGranted) return true;
+
+  if (status.isPermanentlyDenied) {
+    await openAppSettings();
   }
 
-  if (status.isGranted) {
-    return true;
-  }
-
-  if (context.mounted) {
-    await showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (ctx) => const NotificationPermissionDialog(),
-    );
-  }
-
-  final postStatus = await Permission.notification.status;
-  return postStatus.isGranted;
+  return status.isGranted;
 }
 
 class NotificationPermissionDialog extends StatelessWidget {

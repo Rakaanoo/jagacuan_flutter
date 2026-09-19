@@ -13,7 +13,6 @@ import '../../nabar_room/views/nabar_room_view.dart';
 import '../../nabar_room/views/connect_google_modal.dart';
 import '../../calendar/views/calendar_modal.dart';
 import '../../statistics/views/statistics_modal.dart';
-import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../../core/i18n.dart';
 
 import '../../../../data/repositories/local_storage_repository.dart';

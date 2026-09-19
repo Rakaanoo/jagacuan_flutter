@@ -241,17 +241,17 @@ class SelectTargetTypeModal extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Masukkan 6 digit angka kode room:'),
+            const Text('Masukkan 6 karakter kode room (huruf & angka):'),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
               autofocus: true,
-              keyboardType: TextInputType.number,
+              textCapitalization: TextCapitalization.characters,
               maxLength: 6,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 3.0),
               textAlign: TextAlign.center,
               decoration: InputDecoration(
-                hintText: '123456',
+                hintText: '7A3K9M',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 counterText: '',
               ),

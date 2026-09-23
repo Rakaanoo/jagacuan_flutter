@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:app_links/app_links.dart';
 import '../view_models/target_list_view_model.dart';
 import '../../../../data/models/target_item.dart';
 import '../../../core/formatters.dart';
@@ -16,6 +18,7 @@ import '../../statistics/views/statistics_modal.dart';
 import '../../../core/i18n.dart';
 
 import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../../core/notification_permission_dialog.dart';
 
 class TargetListView extends StatefulWidget {
@@ -27,6 +30,71 @@ class TargetListView extends StatefulWidget {
 
 class _TargetListViewState extends State<TargetListView> {
   bool _checkedInitialNotif = false;
+  final _appLinks = AppLinks();
+  StreamSubscription<Uri>? _linkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  Future<void> _initDeepLinks() async {
+    _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
+      _handleIncomingUri(uri);
+    }, onError: (err) {
+      debugPrint('Deep link error: $err');
+    });
+
+    try {
+      final initialUri = await _appLinks.getInitialLink();
+      if (initialUri != null) {
+        _handleIncomingUri(initialUri);
+      }
+    } catch (e) {
+      debugPrint('Failed to get initial deep link: $e');
+    }
+  }
+
+  Future<void> _handleIncomingUri(Uri uri) async {
+    final repo = context.read<SupabaseNabarRepository>();
+    final code = repo.extractCodeFromInput(uri.toString());
+    if (code.isNotEmpty) {
+      if (repo.currentUser == null) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (_) => const ConnectGoogleModal(),
+          );
+        }
+        return;
+      }
+      try {
+        final room = await repo.joinRoomByInviteCode(code);
+        if (room != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Berhasil bergabung ke "${room.name}"!')),
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => NabarRoomView(roomId: room.id)),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal bergabung via link: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _linkSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {

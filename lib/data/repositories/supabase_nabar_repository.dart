@@ -43,9 +43,14 @@ String extractCodeFromInput(String input) {
   var clean = input.trim();
   if (clean.contains('/room/')) {
     final parts = clean.split('/room/');
-    clean = parts.last.split('?').first.split('#').first;
+    clean = parts.last.split('?').first.split('#').first.split('/').first;
+  } else if (clean.contains('://')) {
+    final uri = Uri.tryParse(clean);
+    if (uri != null && uri.pathSegments.isNotEmpty) {
+      clean = uri.pathSegments.last;
+    }
   }
-  return clean;
+  return clean.replaceAll('/', '').trim();
 }
 
 class SupabaseNabarRepository extends ChangeNotifier {
@@ -98,21 +103,14 @@ class SupabaseNabarRepository extends ChangeNotifier {
     final cleanCode = extractCodeFromInput(inviteCode);
     if (cleanCode.isEmpty) throw Exception('Kode atau link room tidak boleh kosong.');
 
-    final targetUuid = codeToUuid(cleanCode);
+    final targetUuidUpper = codeToUuid(cleanCode.toUpperCase());
+    final targetUuidLower = codeToUuid(cleanCode.toLowerCase());
 
     var roomRes = await _client
         .from('rooms')
         .select('id, owner_id')
-        .eq('id', targetUuid)
+        .or('id.eq.$targetUuidUpper,id.eq.$targetUuidLower,id.eq.${cleanCode.toUpperCase()},id.eq.${cleanCode.toLowerCase()}')
         .maybeSingle();
-
-    if (roomRes == null) {
-      roomRes = await _client
-          .from('rooms')
-          .select('id, owner_id')
-          .eq('id', cleanCode)
-          .maybeSingle();
-    }
 
     if (roomRes == null) {
       final list = await _client
@@ -125,7 +123,7 @@ class SupabaseNabarRepository extends ChangeNotifier {
       }
     }
 
-    if (roomRes == null) throw Exception('Ruang Nabung dengan kode "$cleanCode" tidak ditemukan.');
+    if (roomRes == null) throw Exception('Ruang Nabung dengan link/kode "$cleanCode" tidak ditemukan.');
 
     final roomId = roomRes['id'].toString();
     final isOwner = roomRes['owner_id']?.toString() == user.id;

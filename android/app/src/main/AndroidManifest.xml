@@ -38,13 +38,16 @@
                 <data
                     android:scheme="io.supabase.jagacuan" />
             </intent-filter>
-            <!-- Vercel Web OAuth Redirect Filter to Flutter App -->
+            <!-- Vercel Web OAuth & Nabar Room Deep Link Redirect Filter to Flutter App -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="jagacuan-app.vercel.app" />
                 <data android:scheme="http" android:host="jagacuan-app.vercel.app" />
+                <data android:scheme="https" android:host="jagacuan.app" />
+                <data android:scheme="http" android:host="jagacuan.app" />
+                <data android:scheme="jagacuan" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

@@ -573,7 +573,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             ),
             const SizedBox(height: 20),
 
-            // Room Link & Code Card
+            // Room Link Card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -581,78 +581,40 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: isDark ? const Color(0xFF333748) : const Color(0xFFDDD5C7)),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  // Link Section
-                  Row(
-                    children: [
-                      const Icon(LucideIcons.link, size: 22, color: Color(0xFF7C8BFF)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(AppTranslations.tr(lang, 'nabar.room_link_label'), style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                            const SizedBox(height: 2),
-                            SelectableText(
-                              'https://jagacuan-app.vercel.app/room/${room.inviteCode}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF3B82F6)),
-                            ),
-                          ],
+                  const Icon(LucideIcons.link, size: 22, color: Color(0xFF7C8BFF)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(AppTranslations.tr(lang, 'nabar.room_link_label'), style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                        const SizedBox(height: 2),
+                        SelectableText(
+                          'https://jagacuan-app.vercel.app/room/${room.inviteCode}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF3B82F6)),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          final roomLink = 'https://jagacuan-app.vercel.app/room/${room.inviteCode}';
-                          Clipboard.setData(ClipboardData(text: roomLink));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(AppTranslations.tr(lang, 'nabar.link_copied'))),
-                          );
-                        },
-                        icon: const Icon(LucideIcons.copy, size: 14),
-                        label: Text(AppTranslations.tr(lang, 'nabar.copy_link')),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF7C8BFF),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Divider(height: 1),
-                  ),
-                  // Raw Code Sub-section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(LucideIcons.keyRound, size: 16, color: Colors.grey),
-                          const SizedBox(width: 8),
-                          Text('${AppTranslations.tr(lang, 'nabar.room_code_label')}: ', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                          SelectableText(
-                            room.inviteCode,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.5),
-                          ),
-                        ],
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: room.inviteCode));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(AppTranslations.tr(lang, 'nabar.code_copied').replaceAll('{code}', room.inviteCode))),
-                          );
-                        },
-                        icon: const Icon(LucideIcons.copy, size: 12),
-                        label: Text(AppTranslations.tr(lang, 'nabar.copy_code'), style: const TextStyle(fontSize: 12)),
-                        style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-                      ),
-                    ],
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      final roomLink = 'https://jagacuan-app.vercel.app/room/${room.inviteCode}';
+                      Clipboard.setData(ClipboardData(text: roomLink));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(AppTranslations.tr(lang, 'nabar.link_copied'))),
+                      );
+                    },
+                    icon: const Icon(LucideIcons.copy, size: 14),
+                    label: Text(AppTranslations.tr(lang, 'nabar.copy_link')),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7C8BFF),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                 ],
               ),

@@ -106,10 +106,10 @@ class SelectTargetTypeModal extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Option 4: Gabung Room Nabar
+          // Option 4: Gabung via Link Room Nabar
           _buildOptionCard(
             context,
-            icon: LucideIcons.keyRound,
+            icon: LucideIcons.link,
             title: AppTranslations.tr(vm.language, 'select_type.join_room'),
             subtitle: AppTranslations.tr(vm.language, 'select_type.join_room_desc'),
             cardBg: cardBg,
@@ -246,10 +246,9 @@ class SelectTargetTypeModal extends StatelessWidget {
             TextField(
               controller: controller,
               autofocus: true,
-              textCapitalization: TextCapitalization.characters,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'https://... atau 7A3K9M',
+                hintText: 'https://jagacuan-app.vercel.app/room/...',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),

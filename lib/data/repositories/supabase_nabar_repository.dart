@@ -60,6 +60,20 @@ class SupabaseNabarRepository extends ChangeNotifier {
   bool get isSigningIn => _isSigningIn;
   User? get currentUser => _client.auth.currentUser;
 
+  String extractCodeFromInput(String input) {
+    var clean = input.trim();
+    if (clean.contains('/room/')) {
+      final parts = clean.split('/room/');
+      clean = parts.last.split('?').first.split('#').first.split('/').first;
+    } else if (clean.contains('://')) {
+      final uri = Uri.tryParse(clean);
+      if (uri != null && uri.pathSegments.isNotEmpty) {
+        clean = uri.pathSegments.last;
+      }
+    }
+    return clean.replaceAll('/', '').trim();
+  }
+
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 
   SupabaseNabarRepository() {

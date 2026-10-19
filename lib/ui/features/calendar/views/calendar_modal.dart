@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
+
 import '../../target_list/view_models/target_list_view_model.dart';
 import '../../../core/formatters.dart';
 import '../../../core/i18n.dart';
+import '../../../core/theme.dart';
 import '../../target_list/views/create_target_modal.dart';
 
 class CalendarModal extends StatefulWidget {
@@ -45,19 +47,24 @@ class _CalendarModalState extends State<CalendarModal> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TargetListViewModel>();
-    final isDark = vm.isDarkMode;
     final lang = vm.language;
 
-    final bg = isDark ? const Color(0xFF181920) : const Color(0xFFFAF6EF);
-    final cardBg = isDark ? const Color(0xFF232532) : const Color(0xFFEFEADF);
-    final monthPillBg = isDark ? const Color(0xFF252735) : const Color(0xFFE8E2D5);
-    final selectedDayBg = const Color(0xFF7284FF);
-    final cardBorder = isDark ? const Color(0xFF2E3142) : const Color(0xFFE0D5C3);
-    final textColor = isDark ? Colors.white : const Color(0xFF2C2418);
-    final mutedTextColor = isDark ? const Color(0xFF9A9FAE) : const Color(0xFF7A6F60);
+    final bg = context.appBg;
+    final cardBg = context.appCard;
+    final monthPillBg = context.appSurface;
+    final selectedDayBg = context.appAccent;
+    final cardBorder = context.appBorder;
+    final textColor = context.appTextPrimary;
+    final mutedTextColor = context.appTextMuted;
 
-    final daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
-    final firstWeekday = DateTime(_currentMonth.year, _currentMonth.month, 1).weekday % 7; // 0 = Sunday
+    final daysInMonth = DateTime(
+      _currentMonth.year,
+      _currentMonth.month + 1,
+      0,
+    ).day;
+    final firstWeekday =
+        DateTime(_currentMonth.year, _currentMonth.month, 1).weekday %
+        7; // 0 = Sunday
 
     final dayTargets = vm.targets.where((t) {
       return t.endDate.year == _selectedDate.year &&
@@ -83,7 +90,7 @@ class _CalendarModalState extends State<CalendarModal> {
                 color: Colors.black45,
                 blurRadius: 30,
                 offset: Offset(0, 10),
-              )
+              ),
             ],
           ),
           padding: const EdgeInsets.all(24),
@@ -102,7 +109,11 @@ class _CalendarModalState extends State<CalendarModal> {
                         color: cardBg,
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(LucideIcons.calendar, color: textColor, size: 22),
+                      child: Icon(
+                        LucideIcons.calendar,
+                        color: textColor,
+                        size: 22,
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -131,7 +142,11 @@ class _CalendarModalState extends State<CalendarModal> {
                     IconButton(
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      icon: Icon(LucideIcons.x, color: mutedTextColor, size: 20),
+                      icon: Icon(
+                        LucideIcons.x,
+                        color: mutedTextColor,
+                        size: 20,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -140,7 +155,10 @@ class _CalendarModalState extends State<CalendarModal> {
 
                 // Month Selector Pill
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: monthPillBg,
                     borderRadius: BorderRadius.circular(16),
@@ -151,10 +169,17 @@ class _CalendarModalState extends State<CalendarModal> {
                       IconButton(
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        icon: Icon(LucideIcons.chevronLeft, color: textColor, size: 20),
+                        icon: Icon(
+                          LucideIcons.chevronLeft,
+                          color: textColor,
+                          size: 20,
+                        ),
                         onPressed: () {
                           setState(() {
-                            _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
+                            _currentMonth = DateTime(
+                              _currentMonth.year,
+                              _currentMonth.month - 1,
+                            );
                           });
                         },
                       ),
@@ -169,10 +194,17 @@ class _CalendarModalState extends State<CalendarModal> {
                       IconButton(
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        icon: Icon(LucideIcons.chevronRight, color: textColor, size: 20),
+                        icon: Icon(
+                          LucideIcons.chevronRight,
+                          color: textColor,
+                          size: 20,
+                        ),
                         onPressed: () {
                           setState(() {
-                            _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
+                            _currentMonth = DateTime(
+                              _currentMonth.year,
+                              _currentMonth.month + 1,
+                            );
                           });
                         },
                       ),
@@ -185,17 +217,19 @@ class _CalendarModalState extends State<CalendarModal> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: dayNames
-                      .map((day) => Expanded(
-                            child: Text(
-                              day,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: mutedTextColor,
-                              ),
+                      .map(
+                        (day) => Expanded(
+                          child: Text(
+                            day,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: mutedTextColor,
                             ),
-                          ))
+                          ),
+                        ),
+                      )
                       .toList(),
                 ),
                 const SizedBox(height: 10),
@@ -214,8 +248,13 @@ class _CalendarModalState extends State<CalendarModal> {
                     if (index < firstWeekday) return const SizedBox.shrink();
 
                     final dayNum = index - firstWeekday + 1;
-                    final date = DateTime(_currentMonth.year, _currentMonth.month, dayNum);
-                    final isSelected = date.year == _selectedDate.year &&
+                    final date = DateTime(
+                      _currentMonth.year,
+                      _currentMonth.month,
+                      dayNum,
+                    );
+                    final isSelected =
+                        date.year == _selectedDate.year &&
                         date.month == _selectedDate.month &&
                         date.day == _selectedDate.day;
 
@@ -234,7 +273,10 @@ class _CalendarModalState extends State<CalendarModal> {
                           color: isSelected ? selectedDayBg : cardBg,
                           borderRadius: BorderRadius.circular(14),
                           border: hasDeadline && !isSelected
-                              ? Border.all(color: const Color(0xFFF59E0B), width: 1.5)
+                              ? Border.all(
+                                  color: const Color(0xFFF59E0B),
+                                  width: 1.5,
+                                )
                               : null,
                         ),
                         child: Stack(
@@ -244,7 +286,9 @@ class _CalendarModalState extends State<CalendarModal> {
                                 '$dayNum',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
                                   color: isSelected ? Colors.white : textColor,
                                 ),
                               ),
@@ -304,7 +348,10 @@ class _CalendarModalState extends State<CalendarModal> {
                       },
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: cardBg,
                           borderRadius: BorderRadius.circular(10),
@@ -355,55 +402,68 @@ class _CalendarModalState extends State<CalendarModal> {
                         )
                       : Column(
                           children: dayTargets
-                              .map((t) => Container(
-                                    margin: const EdgeInsets.only(bottom: 10),
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF1B1C26) : Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(10),
+                              .map(
+                                (t) => Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: context.appSurface,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF59E0B)
+                                              .withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
                                           ),
-                                          child: const Icon(LucideIcons.target, color: Color(0xFFF59E0B), size: 20),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                t.title,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 14,
-                                                  color: textColor,
-                                                ),
+                                        child: const Icon(
+                                          LucideIcons.target,
+                                          color: Color(0xFFF59E0B),
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              t.title,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                                color: textColor,
                                               ),
-                                              const SizedBox(height: 2),
-                                              Text(
-                                                '${formatRupiah(t.currentAmount, vm.currency)} / ${formatRupiah(t.targetAmount, vm.currency)}',
-                                                style: TextStyle(fontSize: 12, color: mutedTextColor),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              '${formatRupiah(t.currentAmount, vm.currency)} / ${formatRupiah(t.targetAmount, vm.currency)}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: mutedTextColor,
                                               ),
-                                            ],
-                                          ),
+                                            ),
+                                          ],
                                         ),
-                                        Text(
-                                          '${t.progressPercentage.toStringAsFixed(0)}%',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                            color: Color(0xFF10B981),
-                                          ),
+                                      ),
+                                      Text(
+                                        '${t.progressPercentage.toStringAsFixed(0)}%',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: Color(0xFF10B981),
                                         ),
-                                      ],
-                                    ),
-                                  ))
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
                               .toList(),
                         ),
                 ),

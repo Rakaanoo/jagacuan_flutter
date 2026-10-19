@@ -3,7 +3,7 @@ class NabarMember {
   final String userId;
   final String name;
   final String status; // 'approved', 'pending', 'rejected'
-  final String role;   // 'owner', 'member'
+  final String role; // 'owner', 'member'
   final String? avatarUrl;
   final String avatarBg;
 
@@ -19,10 +19,22 @@ class NabarMember {
 
   factory NabarMember.fromMap(Map<String, dynamic> map, {String? roomOwnerId}) {
     final meta = map['user_metadata'] as Map<String, dynamic>? ?? {};
-    final fullName = map['user_name'] ?? map['name'] ?? meta['full_name'] ?? meta['name'] ?? map['email']?.split('@').first ?? 'Member';
-    final avatar = map['avatar_url'] ?? map['user_avatar'] ?? meta['avatar_url'] ?? meta['picture'];
+    final fullName =
+        map['user_name'] ??
+        map['name'] ??
+        meta['full_name'] ??
+        meta['name'] ??
+        map['email']?.split('@').first ??
+        'Member';
+    final avatar =
+        map['avatar_url'] ??
+        map['user_avatar'] ??
+        meta['avatar_url'] ??
+        meta['picture'];
     final uId = map['user_id'] ?? '';
-    final computedRole = (roomOwnerId != null && uId == roomOwnerId) ? 'owner' : (map['role'] ?? 'member');
+    final computedRole = (roomOwnerId != null && uId == roomOwnerId)
+        ? 'owner'
+        : (map['role'] ?? 'member');
 
     return NabarMember(
       id: map['id']?.toString() ?? '',
@@ -67,7 +79,9 @@ class NabarActivity {
       amount: (map['amount'] ?? 0).toDouble(),
       isDeposit: map['is_deposit'] ?? map['is_income'] ?? true,
       note: map['note'] ?? map['action_label'] ?? '',
-      timestamp: map['created_at'] != null ? DateTime.parse(map['created_at']) : DateTime.now(),
+      timestamp: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : DateTime.now(),
       status: map['status'] ?? 'approved',
       avatarUrl: map['user_avatar'] ?? map['avatar_url'],
     );
@@ -84,7 +98,8 @@ class NabarRoom {
   final String? note;
   final String? coverUrl;
   final String inviteCode;
-  final String userStatus; // 'owner', 'approved_member', 'pending_member', 'non_member'
+  final String
+  userStatus; // 'owner', 'approved_member', 'pending_member', 'non_member'
   final List<NabarMember> members;
   final List<NabarMember> pendingMembers;
   final List<NabarActivity> activities;
@@ -111,5 +126,110 @@ class NabarRoom {
     if (targetAmount <= 0) return 0;
     final pct = (currentAmount / targetAmount) * 100;
     return pct > 100 ? 100 : pct;
+  }
+
+  NabarRoom copyWith({
+    String? id,
+    String? name,
+    double? targetAmount,
+    double? currentAmount,
+    DateTime? targetDate,
+    String? ownerId,
+    String? note,
+    String? coverUrl,
+    String? inviteCode,
+    String? userStatus,
+    List<NabarMember>? members,
+    List<NabarMember>? pendingMembers,
+    List<NabarActivity>? activities,
+    List<NabarActivity>? pendingActivities,
+  }) {
+    return NabarRoom(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      targetAmount: targetAmount ?? this.targetAmount,
+      currentAmount: currentAmount ?? this.currentAmount,
+      targetDate: targetDate ?? this.targetDate,
+      ownerId: ownerId ?? this.ownerId,
+      note: note ?? this.note,
+      coverUrl: coverUrl ?? this.coverUrl,
+      inviteCode: inviteCode ?? this.inviteCode,
+      userStatus: userStatus ?? this.userStatus,
+      members: members ?? this.members,
+      pendingMembers: pendingMembers ?? this.pendingMembers,
+      activities: activities ?? this.activities,
+      pendingActivities: pendingActivities ?? this.pendingActivities,
+    );
+  }
+}
+
+class NabarRoomPreview {
+  final String id;
+  final String name;
+  final double targetAmount;
+  final DateTime targetDate;
+  final String ownerName;
+  final String? coverUrl;
+  final String? note;
+  final String
+  userStatus; // 'owner', 'approved_member', 'pending_member', 'non_member'
+
+  NabarRoomPreview({
+    required this.id,
+    required this.name,
+    required this.targetAmount,
+    required this.targetDate,
+    required this.ownerName,
+    this.coverUrl,
+    this.note,
+    required this.userStatus,
+  });
+}
+
+class NabarMessage {
+  final String id;
+  final String roomId;
+  final String userId;
+  final String userName;
+  final String? avatarUrl;
+  final String message;
+  final String messageType; // 'text', 'cheer', 'system'
+  final DateTime createdAt;
+
+  NabarMessage({
+    required this.id,
+    required this.roomId,
+    required this.userId,
+    required this.userName,
+    this.avatarUrl,
+    required this.message,
+    this.messageType = 'text',
+    required this.createdAt,
+  });
+
+  factory NabarMessage.fromMap(Map<String, dynamic> map) {
+    return NabarMessage(
+      id: map['id']?.toString() ?? '',
+      roomId: map['room_id']?.toString() ?? '',
+      userId: map['user_id']?.toString() ?? '',
+      userName: map['user_name'] ?? 'Member',
+      avatarUrl: map['avatar_url'],
+      message: map['message'] ?? '',
+      messageType: map['message_type'] ?? 'text',
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'room_id': roomId,
+      'user_id': userId,
+      'user_name': userName,
+      'avatar_url': avatarUrl,
+      'message': message,
+      'message_type': messageType,
+    };
   }
 }

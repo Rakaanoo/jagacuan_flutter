@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../../../data/models/nabar_room.dart';
 import '../../../../data/models/target_item.dart';
@@ -8,6 +9,8 @@ import '../../target_list/view_models/target_list_view_model.dart';
 import '../../target_list/views/create_target_modal.dart';
 import '../views/nabar_room_view.dart';
 import '../../../core/i18n.dart';
+import '../../../core/formatters.dart';
+import '../../../core/theme.dart';
 
 class ConnectGoogleModal extends StatefulWidget {
   const ConnectGoogleModal({super.key});
@@ -48,20 +51,23 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TargetListViewModel>();
-    final isDark = vm.isDarkMode;
     final repo = context.watch<SupabaseNabarRepository>();
     final user = repo.currentUser;
 
-    final bg = isDark ? const Color(0xFF181920) : const Color(0xFFFAF6EF);
-    final cardBg = isDark ? const Color(0xFF222432) : const Color(0xFFEFEADF);
-    final iconBoxBg = isDark ? const Color(0xFF2B2D3D) : const Color(0xFFE0D9CC);
-    final cardBorder = isDark ? const Color(0xFF2E3142) : const Color(0xFFE0D5C3);
-    final textColor = isDark ? Colors.white : const Color(0xFF2C2418);
-    final mutedTextColor = isDark ? const Color(0xFF9A9FAE) : const Color(0xFF7A6F60);
-    final accentCol = isDark ? const Color(0xFF808CFF) : const Color(0xFF6366F1);
+    final bg = context.appBg;
+    final cardBg = context.appCard;
+    final iconBoxBg = context.appSurface;
+    final cardBorder = context.appBorder;
+    final textColor = context.appTextPrimary;
+    final mutedTextColor = context.appTextMuted;
+    final accentCol = context.appAccent;
 
     final meta = user?.userMetadata ?? {};
-    final fullName = meta['full_name'] ?? meta['name'] ?? user?.email?.split('@').first ?? 'Pengguna';
+    final fullName =
+        meta['full_name'] ??
+        meta['name'] ??
+        user?.email?.split('@').first ??
+        'Pengguna';
     final avatarUrl = meta['avatar_url'] ?? meta['picture'];
     final email = user?.email ?? '';
 
@@ -80,7 +86,7 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                 color: Colors.black54,
                 blurRadius: 30,
                 offset: Offset(0, 10),
-              )
+              ),
             ],
           ),
           padding: const EdgeInsets.all(24),
@@ -95,14 +101,13 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          LucideIcons.users,
-                          color: textColor,
-                          size: 22,
-                        ),
+                        Icon(LucideIcons.users, color: textColor, size: 22),
                         const SizedBox(width: 10),
                         Text(
-                          'Ruang Nabung',
+                          AppTranslations.tr(
+                            vm.language,
+                            'connect_google.header',
+                          ),
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -114,14 +119,18 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                     IconButton(
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
-                      icon: Icon(LucideIcons.x, color: mutedTextColor, size: 20),
+                      icon: Icon(
+                        LucideIcons.x,
+                        color: mutedTextColor,
+                        size: 20,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
 
-                Divider(color: isDark ? const Color(0xFF2A2D3C) : const Color(0xFFE0D5C3), height: 1),
+                Divider(color: cardBorder, height: 1),
                 const SizedBox(height: 20),
 
                 if (user == null) ...[
@@ -143,17 +152,20 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                             color: iconBoxBg,
                             borderRadius: BorderRadius.circular(18),
                           ),
-                          child: const Center(
+                          child: Center(
                             child: Icon(
                               LucideIcons.logIn,
-                              color: Color(0xFF808CFF),
+                              color: accentCol,
                               size: 28,
                             ),
                           ),
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          AppTranslations.tr(vm.language, 'connect_google.title'),
+                          AppTranslations.tr(
+                            vm.language,
+                            'connect_google.title',
+                          ),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 20,
@@ -163,7 +175,10 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          AppTranslations.tr(vm.language, 'connect_google.desc'),
+                          AppTranslations.tr(
+                            vm.language,
+                            'connect_google.desc',
+                          ),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 13,
@@ -173,30 +188,36 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                         ),
                         const SizedBox(height: 20),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF16251E) : const Color(0xFFE8F5E9),
+                            color: context.appBadgeSuccessBg,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: isDark ? const Color(0xFF234D3A) : const Color(0xFFA5D6A7),
+                              color: context.appBadgeSuccessBorder,
                               width: 1,
                             ),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 LucideIcons.shieldCheck,
-                                color: Color(0xFF22C55E),
+                                color: context.appBadgeSuccessText,
                                 size: 18,
                               ),
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  AppTranslations.tr(vm.language, 'connect_google.safe_notice'),
+                                  AppTranslations.tr(
+                                    vm.language,
+                                    'connect_google.safe_notice',
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isDark ? const Color(0xFF9ECBAF) : const Color(0xFF1B5E20),
+                                    color: context.appBadgeSuccessText,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -216,8 +237,12 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                                       _loadRooms();
                                     } catch (e) {
                                       if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Google Sign-In: $e')),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Google Sign-In: $e'),
+                                          ),
                                         );
                                       }
                                     }
@@ -235,7 +260,10 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                                 ? const SizedBox(
                                     height: 20,
                                     width: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF4285F4)),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFF4285F4),
+                                    ),
                                   )
                                 : Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -243,7 +271,7 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                                       Image.asset(
                                         'assets/images/google-logo.png',
                                         height: 20,
-                                        errorBuilder: (_, __, ___) => const Text(
+                                        errorBuilder: (_, _, _) => const Text(
                                           'G',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
@@ -254,7 +282,10 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
-                                        AppTranslations.tr(vm.language, 'connect_google.button'),
+                                        AppTranslations.tr(
+                                          vm.language,
+                                          'connect_google.button',
+                                        ),
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
@@ -271,7 +302,10 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                 ] else ...[
                   // Logged-in User Profile Card (Matches User's UI/UX Screenshot)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
                       color: cardBg,
                       borderRadius: BorderRadius.circular(16),
@@ -286,14 +320,23 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: const Color(0xFF5B50D6),
-                            image: (avatarUrl != null && avatarUrl.toString().isNotEmpty)
-                                ? DecorationImage(image: NetworkImage(avatarUrl.toString()), fit: BoxFit.cover)
+                            image:
+                                (avatarUrl != null &&
+                                    avatarUrl.toString().isNotEmpty)
+                                ? DecorationImage(
+                                    image: NetworkImage(avatarUrl.toString()),
+                                    fit: BoxFit.cover,
+                                  )
                                 : null,
                           ),
-                          child: (avatarUrl == null || avatarUrl.toString().isEmpty)
+                          child:
+                              (avatarUrl == null ||
+                                  avatarUrl.toString().isEmpty)
                               ? Center(
                                   child: Text(
-                                    fullName.isNotEmpty ? fullName[0].toUpperCase() : 'U',
+                                    fullName.isNotEmpty
+                                        ? fullName[0].toUpperCase()
+                                        : 'U',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -325,7 +368,10 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                                   ),
                                   const SizedBox(width: 6),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF16A34A),
                                       borderRadius: BorderRadius.circular(999),
@@ -333,7 +379,11 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                                     child: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(LucideIcons.checkCircle2, color: Colors.white, size: 10),
+                                        Icon(
+                                          LucideIcons.checkCircle2,
+                                          color: Colors.white,
+                                          size: 10,
+                                        ),
                                         SizedBox(width: 3),
                                         Text(
                                           'Google',
@@ -363,8 +413,15 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
 
                         // Sign Out Button
                         IconButton(
-                          icon: Icon(LucideIcons.logOut, color: mutedTextColor, size: 18),
-                          tooltip: 'Keluar / Putuskan Akun',
+                          icon: Icon(
+                            LucideIcons.logOut,
+                            color: mutedTextColor,
+                            size: 18,
+                          ),
+                          tooltip: AppTranslations.tr(
+                            vm.language,
+                            'connect_google.sign_out_tooltip',
+                          ),
                           onPressed: () async {
                             await repo.signOut();
                             if (mounted) {
@@ -381,13 +438,21 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
 
                   // Main Content: Rooms List or Empty State Text
                   if (_isLoadingRooms)
-                    const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
                   else if (_rooms.isEmpty)
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Text(
-                          'Belum ada room nabung kolaborasi.',
+                          AppTranslations.tr(
+                            vm.language,
+                            'connect_google.no_rooms',
+                          ),
                           style: TextStyle(
                             fontSize: 14,
                             color: mutedTextColor,
@@ -407,24 +472,45 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                             border: Border.all(color: cardBorder),
                           ),
                           child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
                             leading: Container(
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF2C2F40) : const Color(0xFFE5DDD0),
+                                color: context.appSurface,
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(LucideIcons.users, color: Color(0xFF808CFF), size: 20),
+                              child: Icon(
+                                LucideIcons.users,
+                                color: accentCol,
+                                size: 20,
+                              ),
                             ),
-                            title: Text(r.name, style: TextStyle(fontWeight: FontWeight.bold, color: textColor)),
-                            subtitle: Text('Target: Rp ${r.targetAmount.toStringAsFixed(0)}'),
-                            trailing: Icon(LucideIcons.chevronRight, color: mutedTextColor, size: 18),
+                            title: Text(
+                              r.name,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${AppTranslations.tr(vm.language, 'nabar.target')} ${formatRupiah(r.targetAmount, vm.currency)}',
+                            ),
+                            trailing: Icon(
+                              LucideIcons.chevronRight,
+                              color: mutedTextColor,
+                              size: 18,
+                            ),
                             onTap: () {
                               Navigator.pop(context);
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (_) => NabarRoomView(roomId: r.id)),
+                                MaterialPageRoute(
+                                  builder: (_) => NabarRoomView(roomId: r.id),
+                                ),
                               );
                             },
                           ),
@@ -444,11 +530,18 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (_) => const CreateTargetModal(initialType: TargetType.nabar),
+                          builder: (_) => const CreateTargetModal(
+                            initialType: TargetType.nabar,
+                          ),
                         );
                       },
                       icon: const Icon(LucideIcons.plus, size: 18),
-                      label: Text(AppTranslations.tr(vm.language, 'connect_google.create_new_room')),
+                      label: Text(
+                        AppTranslations.tr(
+                          vm.language,
+                          'connect_google.create_new_room',
+                        ),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: accentCol,
                         foregroundColor: Colors.white,

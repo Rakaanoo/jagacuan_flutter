@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
+
 import 'data/repositories/local_storage_repository.dart';
 import 'data/repositories/supabase_nabar_repository.dart';
 import 'ui/core/theme.dart';
@@ -11,8 +12,19 @@ import 'ui/features/target_list/views/target_list_view.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Indonesian locale date formatting
-  await initializeDateFormatting('id_ID', null);
+  // Initialize date formatting for all supported locales
+  await Future.wait([
+    initializeDateFormatting('id_ID', null),
+    initializeDateFormatting('en_US', null),
+    initializeDateFormatting('de_DE', null),
+    initializeDateFormatting('fr_FR', null),
+    initializeDateFormatting('it_IT', null),
+    initializeDateFormatting('es_ES', null),
+    initializeDateFormatting('ja_JP', null),
+    initializeDateFormatting('zh_CN', null),
+    initializeDateFormatting('th_TH', null),
+    initializeDateFormatting('hi_IN', null),
+  ]);
 
   // Initialize Supabase
   await Supabase.initialize(

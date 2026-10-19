@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../view_models/target_list_view_model.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../nabar_room/views/connect_google_modal.dart';
 import '../../../core/i18n.dart';
+import '../../../core/theme.dart';
 
 class SidebarDrawer extends StatelessWidget {
   const SidebarDrawer({super.key});
@@ -16,16 +18,21 @@ class SidebarDrawer extends StatelessWidget {
     final supabaseRepo = context.watch<SupabaseNabarRepository>();
     final currentUser = supabaseRepo.currentUser;
 
-    final bg = isDark ? const Color(0xFF16171E) : const Color(0xFFFAF7F2);
-    final cardBg = isDark ? const Color(0xFF222432) : const Color(0xFFFAF6EF);
-    final activeCardBg = isDark ? const Color(0xFF2B2D3C) : const Color(0xFFEFEADF);
-    final textColor = isDark ? Colors.white : const Color(0xFF2C2418);
-    final mutedTextColor = isDark ? const Color(0xFF8A8F9E) : const Color(0xFF7A6F60);
-    final iconColor = isDark ? const Color(0xFFA4B1FF) : const Color(0xFF2C2418);
+    final bg = context.appBg;
+    final cardBg = context.appCard;
+    final activeCardBg = context.appSurface;
+    final textColor = context.appTextPrimary;
+    final mutedTextColor = context.appTextMuted;
+    final iconColor = isDark ? const Color(0xFFA4B1FF) : context.appTextPrimary;
 
-    final googleAvatarUrl = currentUser?.userMetadata?['avatar_url'] ?? currentUser?.userMetadata?['picture'];
+    final googleAvatarUrl =
+        currentUser?.userMetadata?['avatar_url'] ??
+        currentUser?.userMetadata?['picture'];
     final userName = currentUser != null
-        ? (currentUser.userMetadata?['full_name'] ?? currentUser.userMetadata?['name'] ?? currentUser.email ?? 'Eka putra')
+        ? (currentUser.userMetadata?['full_name'] ??
+              currentUser.userMetadata?['name'] ??
+              currentUser.email ??
+              'Eka putra')
         : 'Eka putra';
     final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : 'E';
 
@@ -59,10 +66,7 @@ class SidebarDrawer extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Divider(
-                color: isDark ? const Color(0xFF272A38) : const Color(0xFFE0D5C3),
-                height: 1,
-              ),
+              Divider(color: context.appBorder, height: 1),
               const SizedBox(height: 20),
 
               // User Profile Card (Google Belum Terhubung / Connected)
@@ -76,12 +80,15 @@ class SidebarDrawer extends StatelessWidget {
                       },
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           color: cardBg,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF2E3142) : const Color(0xFFE0D5C3),
+                            color: context.appBorder,
                             width: 1,
                           ),
                         ),
@@ -91,13 +98,13 @@ class SidebarDrawer extends StatelessWidget {
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF2C2F40) : const Color(0xFFE5DDD0),
+                                color: context.appSurface,
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 LucideIcons.user,
                                 size: 20,
-                                color: isDark ? const Color(0xFFA0A5B5) : const Color(0xFF7A6F60),
+                                color: mutedTextColor,
                               ),
                             ),
                             const SizedBox(width: 14),
@@ -106,7 +113,10 @@ class SidebarDrawer extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    AppTranslations.tr(vm.language, 'sidebar.google_not_connected'),
+                                    AppTranslations.tr(
+                                      vm.language,
+                                      'sidebar.google_not_connected',
+                                    ),
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
@@ -115,7 +125,10 @@ class SidebarDrawer extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 3),
                                   Text(
-                                    AppTranslations.tr(vm.language, 'sidebar.google_not_connected_desc'),
+                                    AppTranslations.tr(
+                                      vm.language,
+                                      'sidebar.google_not_connected_desc',
+                                    ),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: mutedTextColor,
@@ -139,10 +152,14 @@ class SidebarDrawer extends StatelessWidget {
                           CircleAvatar(
                             radius: 20,
                             backgroundColor: const Color(0xFF0284C7),
-                            backgroundImage: googleAvatarUrl != null && googleAvatarUrl.isNotEmpty
+                            backgroundImage:
+                                googleAvatarUrl != null &&
+                                    googleAvatarUrl.isNotEmpty
                                 ? NetworkImage(googleAvatarUrl)
                                 : null,
-                            child: (googleAvatarUrl == null || googleAvatarUrl.isEmpty)
+                            child:
+                                (googleAvatarUrl == null ||
+                                    googleAvatarUrl.isEmpty)
                                 ? Text(
                                     userInitial,
                                     style: const TextStyle(
@@ -181,7 +198,10 @@ class SidebarDrawer extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  AppTranslations.tr(vm.language, 'sidebar.google_connected_desc'),
+                                  AppTranslations.tr(
+                                    vm.language,
+                                    'sidebar.google_connected_desc',
+                                  ),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: mutedTextColor,
@@ -210,7 +230,14 @@ class SidebarDrawer extends StatelessWidget {
                         final messenger = ScaffoldMessenger.of(context);
                         Navigator.pop(context);
                         messenger.showSnackBar(
-                          const SnackBar(content: Text('Menu Arsip Target')),
+                          SnackBar(
+                            content: Text(
+                              AppTranslations.tr(
+                                vm.language,
+                                'sidebar.archive_menu_snackbar',
+                              ),
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -219,7 +246,10 @@ class SidebarDrawer extends StatelessWidget {
                     _buildDrawerItem(
                       context,
                       icon: LucideIcons.globe,
-                      title: AppTranslations.tr(vm.language, 'sidebar.language'),
+                      title: AppTranslations.tr(
+                        vm.language,
+                        'sidebar.language',
+                      ),
                       iconColor: iconColor,
                       textColor: textColor,
                       onTap: () {
@@ -231,7 +261,10 @@ class SidebarDrawer extends StatelessWidget {
                     _buildDrawerItem(
                       context,
                       icon: LucideIcons.refreshCw,
-                      title: AppTranslations.tr(vm.language, 'sidebar.currency'),
+                      title: AppTranslations.tr(
+                        vm.language,
+                        'sidebar.currency',
+                      ),
                       iconColor: iconColor,
                       textColor: textColor,
                       onTap: () {
@@ -244,7 +277,8 @@ class SidebarDrawer extends StatelessWidget {
                     _buildDrawerItem(
                       context,
                       icon: isDark ? LucideIcons.moon : LucideIcons.sun,
-                      title: '${AppTranslations.tr(vm.language, 'sidebar.theme')}: ${isDark ? "Dark Mode" : "Light Mode"}',
+                      title:
+                          '${AppTranslations.tr(vm.language, 'sidebar.theme')}: ${isDark ? "Dark Mode" : "Light Mode"}',
                       iconColor: iconColor,
                       textColor: textColor,
                       isActive: true,
@@ -263,7 +297,14 @@ class SidebarDrawer extends StatelessWidget {
                         final messenger = ScaffoldMessenger.of(context);
                         Navigator.pop(context);
                         messenger.showSnackBar(
-                          const SnackBar(content: Text('Data Celengan Tersimpan Aman di Lokal.')),
+                          SnackBar(
+                            content: Text(
+                              AppTranslations.tr(
+                                vm.language,
+                                'sidebar.backup_saved_locally',
+                              ),
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -298,7 +339,11 @@ class SidebarDrawer extends StatelessWidget {
                         final messenger = ScaffoldMessenger.of(context);
                         Navigator.pop(context);
                         messenger.showSnackBar(
-                          const SnackBar(content: Text('Terima kasih atas penilaian Anda! ⭐⭐⭐⭐⭐')),
+                          const SnackBar(
+                            content: Text(
+                              'Terima kasih atas penilaian Anda! ⭐⭐⭐⭐⭐',
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -313,36 +358,60 @@ class SidebarDrawer extends StatelessWidget {
   }
 
   void _showLanguageDialog(BuildContext context) {
+    final vm = context.read<TargetListViewModel>();
+    final currentLang = vm.language;
+    final bg = context.appCard;
+    final cardBg = context.appSurface;
+    final textColor = context.appTextPrimary;
+    final mutedTextColor = context.appTextMuted;
+
     final languages = [
-      {'code': 'id', 'name': 'Bahasa Indonesia', 'flag': '🇮🇩', 'currency': 'IDR'},
-      {'code': 'en', 'name': 'English (US)', 'flag': '🇺🇸', 'currency': 'USD'},
-      {'code': 'de', 'name': 'Deutsch (Jerman)', 'flag': '🇩🇪', 'currency': 'EUR'},
-      {'code': 'fr', 'name': 'Français (Prancis)', 'flag': '🇫🇷', 'currency': 'EUR'},
-      {'code': 'it', 'name': 'Italiano (Italia)', 'flag': '🇮🇹', 'currency': 'EUR'},
-      {'code': 'es', 'name': 'Español (Spanyol)', 'flag': '🇪🇸', 'currency': 'EUR'},
-      {'code': 'ja', 'name': '日本語 (Jepang)', 'flag': '🇯🇵', 'currency': 'JPY'},
-      {'code': 'zh', 'name': '中文 (China)', 'flag': '🇨🇳', 'currency': 'CNY'},
-      {'code': 'th', 'name': 'ไทย (Thailand)', 'flag': '🇹🇭', 'currency': 'THB'},
-      {'code': 'hi', 'name': 'हिन्दी (India)', 'flag': '🇮🇳', 'currency': 'INR'},
+      {'code': 'id', 'name': 'Bahasa Indonesia', 'flag': '🇮🇩'},
+      {'code': 'en', 'name': 'English (US)', 'flag': '🇺🇸'},
+      {'code': 'de', 'name': 'Deutsch (Jerman)', 'flag': '🇩🇪'},
+      {'code': 'fr', 'name': 'Français (Prancis)', 'flag': '🇫🇷'},
+      {'code': 'it', 'name': 'Italiano (Italia)', 'flag': '🇮🇹'},
+      {'code': 'es', 'name': 'Español (Spanyol)', 'flag': '🇪🇸'},
+      {'code': 'ja', 'name': '日本語 (Jepang)', 'flag': '🇯🇵'},
+      {'code': 'zh', 'name': '中文 (China)', 'flag': '🇨🇳'},
+      {'code': 'th', 'name': 'ไทย (Thailand)', 'flag': '🇹🇭'},
+      {'code': 'hi', 'name': 'हिन्दी (India)', 'flag': '🇮🇳'},
     ];
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: bg,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(ctx).size.height * 0.6,
+          maxHeight: MediaQuery.of(ctx).size.height * 0.65,
         ),
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Pilih Bahasa / Language', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${AppTranslations.tr(currentLang, 'sidebar.language')} / Language',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: textColor,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(LucideIcons.x, size: 20, color: mutedTextColor),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
             Expanded(
               child: ListView.separated(
                 shrinkWrap: true,
@@ -350,24 +419,42 @@ class SidebarDrawer extends StatelessWidget {
                 separatorBuilder: (c, i) => const SizedBox(height: 6),
                 itemBuilder: (c, i) {
                   final lang = languages[i];
+                  final isSelected = lang['code'] == currentLang;
                   return ListTile(
-                    leading: Text(lang['flag']!, style: const TextStyle(fontSize: 20)),
-                    title: Text(lang['name']!, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text('Mata Uang: ${lang['currency']}', style: const TextStyle(fontSize: 12)),
+                    tileColor: isSelected ? cardBg : Colors.transparent,
+                    leading: Text(
+                      lang['flag']!,
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                    title: Text(
+                      lang['name']!,
+                      style: TextStyle(
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isSelected ? const Color(0xFF7C8BFF) : textColor,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(
+                            LucideIcons.check,
+                            color: Color(0xFF7C8BFF),
+                            size: 20,
+                          )
+                        : null,
                     onTap: () {
-                      final vm = context.read<TargetListViewModel>();
                       final messenger = ScaffoldMessenger.of(context);
                       final langName = lang['name']!;
-                      final currName = lang['currency']!;
                       vm.setLanguage(lang['code']!);
-                      vm.setCurrency(lang['currency']!);
                       Navigator.pop(ctx);
                       if (context.mounted) Navigator.pop(context);
                       messenger.showSnackBar(
-                        SnackBar(content: Text('Bahasa: $langName • Mata Uang: $currName')),
+                        SnackBar(content: Text('Bahasa diubah ke $langName')),
                       );
                     },
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   );
                 },
               ),
@@ -379,6 +466,14 @@ class SidebarDrawer extends StatelessWidget {
   }
 
   void _showCurrencyDialog(BuildContext context) {
+    final vm = context.read<TargetListViewModel>();
+    final currentLang = vm.language;
+    final currentCurrency = vm.currency;
+    final bg = context.appCard;
+    final cardBg = context.appSurface;
+    final textColor = context.appTextPrimary;
+    final mutedTextColor = context.appTextMuted;
+
     final currencies = [
       {'code': 'IDR', 'name': 'Rupiah (Rp)', 'flag': '🇮🇩'},
       {'code': 'USD', 'name': 'US Dollar (\$)', 'flag': '🇺🇸'},
@@ -393,20 +488,37 @@ class SidebarDrawer extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: bg,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(ctx).size.height * 0.6,
+          maxHeight: MediaQuery.of(ctx).size.height * 0.65,
         ),
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Pilih Mata Uang / Currency', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${AppTranslations.tr(currentLang, 'sidebar.currency')} / Currency',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: textColor,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(LucideIcons.x, size: 20, color: mutedTextColor),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
             Expanded(
               child: ListView.separated(
                 shrinkWrap: true,
@@ -414,11 +526,30 @@ class SidebarDrawer extends StatelessWidget {
                 separatorBuilder: (c, i) => const SizedBox(height: 6),
                 itemBuilder: (c, i) {
                   final cur = currencies[i];
+                  final isSelected = cur['code'] == currentCurrency;
                   return ListTile(
-                    leading: Text(cur['flag']!, style: const TextStyle(fontSize: 20)),
-                    title: Text('${cur['code']} - ${cur['name']}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    tileColor: isSelected ? cardBg : Colors.transparent,
+                    leading: Text(
+                      cur['flag']!,
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                    title: Text(
+                      '${cur['code']} - ${cur['name']}',
+                      style: TextStyle(
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isSelected ? const Color(0xFF7C8BFF) : textColor,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(
+                            LucideIcons.check,
+                            color: Color(0xFF7C8BFF),
+                            size: 20,
+                          )
+                        : null,
                     onTap: () {
-                      final vm = context.read<TargetListViewModel>();
                       final messenger = ScaffoldMessenger.of(context);
                       final curCode = cur['code']!;
                       final curName = cur['name']!;
@@ -426,10 +557,16 @@ class SidebarDrawer extends StatelessWidget {
                       Navigator.pop(ctx);
                       if (context.mounted) Navigator.pop(context);
                       messenger.showSnackBar(
-                        SnackBar(content: Text('Mata Uang diubah ke $curCode ($curName)')),
+                        SnackBar(
+                          content: Text(
+                            'Mata Uang diubah ke $curCode ($curName)',
+                          ),
+                        ),
                       );
                     },
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   );
                 },
               ),
@@ -475,4 +612,3 @@ class SidebarDrawer extends StatelessWidget {
     );
   }
 }
-

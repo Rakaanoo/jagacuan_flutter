@@ -1,14 +1,18 @@
+import 'dart:async';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../view_models/target_list_view_model.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../../../data/models/target_item.dart';
 import '../../../core/formatters.dart';
 import '../../../core/i18n.dart';
+import '../../../core/theme.dart';
 
 class CreateTargetModal extends StatefulWidget {
   final TargetType initialType;
@@ -62,8 +66,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
     }
     final number = double.tryParse(numeric) ?? 0;
     final vm = context.read<TargetListViewModel>();
-    final symbol = currencySymbolMap[vm.currency] ?? 'Rp ';
-    final formatted = formatCurrency(number, vm.currency).replaceAll(symbol, '');
+    final formatted = formatAmountOnly(number, vm.currency);
     _amountController.value = TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
@@ -75,7 +78,9 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
       final picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 80,
       );
       if (image != null) {
         setState(() {
@@ -93,8 +98,13 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
     final amount = double.tryParse(amountStr) ?? 0;
 
     if (title.isEmpty || amount <= 0) {
+      final lang = context.read<TargetListViewModel>().language;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap isi judul target dan nominal tabungan!')),
+        SnackBar(
+          content: Text(
+            AppTranslations.tr(lang, 'create_target.validation_error'),
+          ),
+        ),
       );
       return;
     }
@@ -108,15 +118,51 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
 
       if (_selectedType == TargetType.nabar) {
         String? roomId;
+        String? remoteCoverUrl;
+
         try {
           final supabaseRepo = context.read<SupabaseNabarRepository>();
           if (supabaseRepo.currentUser != null) {
+            // If user picked an image, upload to Supabase Storage
+            if (_coverUrl != null && _coverUrl!.isNotEmpty) {
+              final file = File(_coverUrl!);
+              if (file.existsSync()) {
+                final uploadedUrl = await supabaseRepo.uploadRoomCover(file);
+                if (uploadedUrl != null) {
+                  remoteCoverUrl = uploadedUrl;
+                }
+              }
+            }
+
             roomId = await supabaseRepo.createRoom(
               name: title,
               targetAmount: baseTargetAmount,
-              targetDate: _deadlineDate ?? _startDate.add(const Duration(days: 30)),
+              targetDate:
+                  _deadlineDate ?? _startDate.add(const Duration(days: 30)),
               note: _noteController.text,
+              coverUrl: remoteCoverUrl,
             );
+
+            // Jika upload awal belum berhasil (misal sinyal lambat), coba upload ulang di background & update Supabase
+            final targetRoomId = roomId;
+            if (remoteCoverUrl == null &&
+                targetRoomId.isNotEmpty &&
+                _coverUrl != null &&
+                _coverUrl!.isNotEmpty) {
+              final file = File(_coverUrl!);
+              if (file.existsSync()) {
+                unawaited(
+                  supabaseRepo
+                      .uploadRoomCover(file, roomId: targetRoomId)
+                      .then((url) {
+                        if (url != null) {
+                          supabaseRepo.updateRoomCover(targetRoomId, url);
+                        }
+                      })
+                      .catchError((_) {}),
+                );
+              }
+            }
           }
         } catch (e) {
           debugPrint('Error creating Supabase room: $e');
@@ -129,7 +175,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
           startDate: _startDate,
           endDate: _deadlineDate ?? _startDate.add(const Duration(days: 30)),
           note: _noteController.text,
-          coverUrl: _coverUrl,
+          coverUrl: remoteCoverUrl ?? _coverUrl,
           type: TargetType.nabar,
           roomId: roomId ?? id,
         );
@@ -154,16 +200,23 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_selectedType == TargetType.nabar
-                ? 'Ruang Nabung Bareng berhasil dibuat!'
-                : 'Target tabungan berhasil dibuat!'),
+            content: Text(
+              _selectedType == TargetType.nabar
+                  ? AppTranslations.tr(vm.language, 'create_target.success_nabar')
+                  : AppTranslations.tr(vm.language, 'create_target.success_target'),
+            ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
+        final lang = context.read<TargetListViewModel>().language;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal membuat target: $e')),
+          SnackBar(
+            content: Text(
+              '${AppTranslations.tr(lang, 'create_target.fail')}: $e',
+            ),
+          ),
         );
       }
     } finally {
@@ -179,18 +232,17 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TargetListViewModel>();
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = context.isDarkMode;
     final lang = vm.language;
 
-    final bg = isDark ? const Color(0xFF181920) : const Color(0xFFFAF6EF);
-    final cardBg = isDark ? const Color(0xFF1F212D) : const Color(0xFFEFEADF);
-    final borderCol = isDark ? const Color(0xFF333748) : const Color(0xFFDDD5C7);
-    final inputBorderFocus = isDark ? const Color(0xFF808CFF) : const Color(0xFF4F5BD5);
-    final textColor = isDark ? Colors.white : const Color(0xFF2C2418);
-    final labelColor = isDark ? const Color(0xFF808CFF) : const Color(0xFF4F5BD5);
-    final mutedColor = isDark ? const Color(0xFF9EA3B2) : const Color(0xFF7A6F60);
-    final btnSaveBg = const Color(0xFF808CFF);
+    final bg = context.appCard;
+    final cardBg = context.appSurface;
+    final borderCol = context.appBorder;
+    final inputBorderFocus = context.appAccent;
+    final textColor = context.appTextPrimary;
+    final labelColor = isDark ? context.appAccent : const Color(0xFF4F5BD5);
+    final mutedColor = context.appTextMuted;
+    final btnSaveBg = context.appAccent;
 
     return Container(
       decoration: BoxDecoration(
@@ -219,9 +271,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                   color: cardBg,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: _coverUrl != null
-                        ? inputBorderFocus
-                        : (isDark ? const Color(0xFF3B4055) : const Color(0xFFDDD5C7)),
+                    color: _coverUrl != null ? inputBorderFocus : borderCol,
                     width: 1.5,
                   ),
                 ),
@@ -231,9 +281,13 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            _coverUrl!.startsWith('http://') || _coverUrl!.startsWith('https://')
+                            _coverUrl!.startsWith('http://') ||
+                                    _coverUrl!.startsWith('https://')
                                 ? Image.network(_coverUrl!, fit: BoxFit.cover)
-                                : Image.file(File(_coverUrl!), fit: BoxFit.cover),
+                                : Image.file(
+                                    File(_coverUrl!),
+                                    fit: BoxFit.cover,
+                                  ),
                             Positioned(
                               top: 8,
                               right: 8,
@@ -245,7 +299,11 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                                     color: Colors.black54,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(LucideIcons.x, color: Colors.white, size: 16),
+                                  child: const Icon(
+                                    LucideIcons.x,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
                                 ),
                               ),
                             ),
@@ -281,9 +339,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
             Text(
               _selectedType == TargetType.nabar
                   ? AppTranslations.tr(lang, 'create.title_nabar')
-                  : (_selectedType == TargetType.berkala
-                      ? AppTranslations.tr(lang, 'create.title_berkala')
-                      : AppTranslations.tr(lang, 'create.title_nabung')),
+                  : AppTranslations.tr(lang, 'create.title_nabung'),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -305,7 +361,11 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                 children: [
                   Text(
                     AppTranslations.tr(lang, 'create.name_label'),
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: labelColor),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: labelColor,
+                    ),
                   ),
                   TextField(
                     controller: _titleController,
@@ -337,17 +397,29 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${AppTranslations.tr(lang, 'create.amount_label')} (${currencySymbolMap[vm.currency] ?? 'Rp '})',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: mutedColor),
+                    '${AppTranslations.tr(lang, 'create.amount_label')} (${(currencySymbolMap[vm.currency] ?? 'Rp').trim()})',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: mutedColor,
+                    ),
                   ),
                   TextField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
                     onChanged: _onAmountChanged,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15),
+                    style: TextStyle(
+                      color: textColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
                     decoration: InputDecoration(
                       hintText: '0',
-                      hintStyle: TextStyle(fontSize: 15, color: mutedColor, fontWeight: FontWeight.bold),
+                      hintStyle: TextStyle(
+                        fontSize: 15,
+                        color: mutedColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 6),
@@ -360,7 +432,10 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
 
             if (_selectedType == TargetType.nabar) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(16),
@@ -374,7 +449,11 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                       children: [
                         Text(
                           'Batas Maksimal Anggota (Orang)',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: labelColor),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: labelColor,
+                          ),
                         ),
                         Icon(LucideIcons.users, size: 16, color: labelColor),
                       ],
@@ -382,7 +461,11 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                     TextField(
                       controller: _memberLimitController,
                       keyboardType: TextInputType.number,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15),
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Contoh: 10',
                         hintStyle: TextStyle(fontSize: 14, color: mutedColor),
@@ -398,7 +481,14 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
             ],
 
             // Field 3: Tanggal Mulai
-            Text(AppTranslations.tr(lang, 'create.start_date'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: mutedColor)),
+            Text(
+              AppTranslations.tr(lang, 'create.start_date'),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: mutedColor,
+              ),
+            ),
             const SizedBox(height: 6),
             InkWell(
               onTap: () async {
@@ -411,7 +501,10 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                 if (picked != null) setState(() => _startDate = picked);
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(16),
@@ -432,20 +525,32 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
             const SizedBox(height: 14),
 
             // Field 4: Deadline (opsional)
-            Text(AppTranslations.tr(lang, 'create.deadline_optional'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: mutedColor)),
+            Text(
+              AppTranslations.tr(lang, 'create.deadline_optional'),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: mutedColor,
+              ),
+            ),
             const SizedBox(height: 6),
             InkWell(
               onTap: () async {
                 final picked = await showDatePicker(
                   context: context,
-                  initialDate: _deadlineDate ?? DateTime.now().add(const Duration(days: 30)),
+                  initialDate:
+                      _deadlineDate ??
+                      DateTime.now().add(const Duration(days: 30)),
                   firstDate: DateTime.now(),
                   lastDate: DateTime(2035),
                 );
                 if (picked != null) setState(() => _deadlineDate = picked);
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(16),
@@ -478,7 +583,11 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                 children: [
                   Text(
                     AppTranslations.tr(lang, 'create.note'),
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: mutedColor),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: mutedColor,
+                    ),
                   ),
                   TextField(
                     controller: _noteController,
@@ -516,11 +625,16 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                         backgroundColor: cardBg,
                         foregroundColor: textColor,
                         side: BorderSide(color: borderCol, width: 1.2),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       child: Text(
                         AppTranslations.tr(lang, 'common.cancel'),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ),
@@ -535,13 +649,18 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                         backgroundColor: btnSaveBg,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                       child: _isSubmitting
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
                               AppTranslations.tr(lang, 'create.button_save'),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
                             ),
                     ),
                   ),

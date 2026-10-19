@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 /// Requests notification permission directly via native OS system prompt.
-Future<bool> checkAndShowNotificationPermissionDialog(BuildContext context) async {
+Future<bool> checkAndShowNotificationPermissionDialog(
+  BuildContext context,
+) async {
   var status = await Permission.notification.status;
   if (status.isGranted) return true;
 

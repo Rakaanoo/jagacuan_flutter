@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/target_item.dart';
 import '../models/transaction_item.dart';
 
@@ -47,24 +49,33 @@ class LocalStorageRepository {
     await saveTargets(targets);
   }
 
-  Future<void> addTransaction(String targetId, double amount, bool isDeposit, String note) async {
+  Future<void> addTransaction(
+    String targetId,
+    double amount,
+    bool isDeposit,
+    String note,
+  ) async {
     final targets = await getTargets();
     final index = targets.indexWhere((t) => t.id == targetId);
     if (index != -1) {
       final target = targets[index];
+      final absAmount = amount.abs();
+      final updatedCurrent = isDeposit
+          ? target.currentAmount + absAmount
+          : (target.currentAmount - absAmount < 0
+                ? 0.0
+                : target.currentAmount - absAmount);
+
       final newTx = TransactionItem(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        amount: amount,
+        amount: absAmount,
         isDeposit: isDeposit,
         note: note,
         timestamp: DateTime.now(),
       );
 
-      final updatedCurrent = isDeposit
-          ? target.currentAmount + amount
-          : (target.currentAmount - amount < 0 ? 0.0 : target.currentAmount - amount);
-
-      final updatedTxList = List<TransactionItem>.from(target.transactions)..insert(0, newTx);
+      final updatedTxList = List<TransactionItem>.from(target.transactions)
+        ..insert(0, newTx);
 
       targets[index] = target.copyWith(
         currentAmount: updatedCurrent,
@@ -77,7 +88,8 @@ class LocalStorageRepository {
 
   Future<bool> hasPromptedInitialNotification() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('jagacuan_initial_notif_prompted') ?? (prefs.getBool('jagacuan_google_notif_prompted') ?? false);
+    return prefs.getBool('jagacuan_initial_notif_prompted') ??
+        (prefs.getBool('jagacuan_google_notif_prompted') ?? false);
   }
 
   Future<void> setPromptedInitialNotification() async {
@@ -91,5 +103,35 @@ class LocalStorageRepository {
 
   Future<void> setPromptedGoogleNotification() async {
     await setPromptedInitialNotification();
+  }
+
+  Future<String?> getSavedLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('jagacuan_language');
+  }
+
+  Future<void> saveLanguage(String lang) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('jagacuan_language', lang);
+  }
+
+  Future<String?> getSavedCurrency() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('jagacuan_currency');
+  }
+
+  Future<void> saveCurrency(String currency) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('jagacuan_currency', currency);
+  }
+
+  Future<bool?> getSavedDarkMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('jagacuan_dark_mode');
+  }
+
+  Future<void> saveDarkMode(bool isDark) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('jagacuan_dark_mode', isDark);
   }
 }

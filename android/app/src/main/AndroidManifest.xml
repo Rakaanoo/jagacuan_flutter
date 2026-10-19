@@ -1,9 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 
     <application
-        android:label="jagacuan_app"
+        android:label="Jaga Cuan"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -47,6 +48,7 @@
                 <data android:scheme="http" android:host="jagacuan-app.vercel.app" />
                 <data android:scheme="https" android:host="jagacuan.app" />
                 <data android:scheme="http" android:host="jagacuan.app" />
+                <data android:scheme="jagacuan" android:host="room" />
                 <data android:scheme="jagacuan" />
             </intent-filter>
         </activity>

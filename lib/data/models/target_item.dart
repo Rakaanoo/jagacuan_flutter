@@ -1,17 +1,15 @@
 import 'dart:convert';
+
 import 'transaction_item.dart';
 
 enum TargetType {
-  target,   // Tabungan Target
-  berkala,  // Tabungan Berkala
-  nabar,    // Nabung Bareng
+  target, // Tabungan Pribadi (Target Impian)
+  @Deprecated('Use TargetType.target instead')
+  berkala, // Legacy Tabungan Berkala (mapped to target)
+  nabar, // Nabung Bareng
 }
 
-enum TargetFrequency {
-  harian,
-  mingguan,
-  bulanan,
-}
+enum TargetFrequency { harian, mingguan, bulanan }
 
 class TargetItem {
   final String id;
@@ -31,6 +29,7 @@ class TargetItem {
   final int alarmHour;
   final int alarmMinute;
   final String alarmDayKey;
+  final bool isArchived;
 
   TargetItem({
     required this.id,
@@ -50,6 +49,7 @@ class TargetItem {
     this.alarmHour = 12,
     this.alarmMinute = 0,
     this.alarmDayKey = 'alarm.day_everyday',
+    this.isArchived = false,
   });
 
   double get progressPercentage {
@@ -62,7 +62,9 @@ class TargetItem {
 
   int get remainingDays {
     final now = DateTime.now();
-    final diff = endDate.difference(DateTime(now.year, now.month, now.day)).inDays;
+    final diff = endDate
+        .difference(DateTime(now.year, now.month, now.day))
+        .inDays;
     return diff < 0 ? 0 : diff;
   }
 
@@ -84,6 +86,7 @@ class TargetItem {
     int? alarmHour,
     int? alarmMinute,
     String? alarmDayKey,
+    bool? isArchived,
   }) {
     return TargetItem(
       id: id ?? this.id,
@@ -95,7 +98,8 @@ class TargetItem {
       note: note ?? this.note,
       type: type ?? this.type,
       frequency: frequency ?? this.frequency,
-      targetNominalPerPeriod: targetNominalPerPeriod ?? this.targetNominalPerPeriod,
+      targetNominalPerPeriod:
+          targetNominalPerPeriod ?? this.targetNominalPerPeriod,
       coverUrl: coverUrl ?? this.coverUrl,
       roomId: roomId ?? this.roomId,
       transactions: transactions ?? this.transactions,
@@ -103,6 +107,7 @@ class TargetItem {
       alarmHour: alarmHour ?? this.alarmHour,
       alarmMinute: alarmMinute ?? this.alarmMinute,
       alarmDayKey: alarmDayKey ?? this.alarmDayKey,
+      isArchived: isArchived ?? this.isArchived,
     );
   }
 
@@ -125,6 +130,7 @@ class TargetItem {
       'alarmHour': alarmHour,
       'alarmMinute': alarmMinute,
       'alarmDayKey': alarmDayKey,
+      'isArchived': isArchived,
     };
   }
 
@@ -137,10 +143,12 @@ class TargetItem {
       startDate: DateTime.parse(map['startDate']),
       endDate: DateTime.parse(map['endDate']),
       note: map['note'],
-      type: TargetType.values.firstWhere(
-        (e) => e.name == map['type'],
-        orElse: () => TargetType.target,
-      ),
+      type: map['type'] == 'berkala'
+          ? TargetType.target
+          : TargetType.values.firstWhere(
+              (e) => e.name == map['type'],
+              orElse: () => TargetType.target,
+            ),
       frequency: map['frequency'] != null
           ? TargetFrequency.values.firstWhere(
               (e) => e.name == map['frequency'],
@@ -154,13 +162,14 @@ class TargetItem {
       roomId: map['roomId'],
       transactions: map['transactions'] != null
           ? (map['transactions'] as List)
-              .map((t) => TransactionItem.fromMap(t))
-              .toList()
+                .map((t) => TransactionItem.fromMap(t))
+                .toList()
           : [],
       alarmEnabled: map['alarmEnabled'] ?? false,
       alarmHour: map['alarmHour'] ?? 12,
       alarmMinute: map['alarmMinute'] ?? 0,
       alarmDayKey: map['alarmDayKey'] ?? 'alarm.day_everyday',
+      isArchived: map['isArchived'] ?? false,
     );
   }
 

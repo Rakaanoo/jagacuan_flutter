@@ -7,13 +7,16 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
   bool _isInitialized = false;
 
   Future<void> init() async {
     if (_isInitialized) return;
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -38,7 +41,8 @@ class NotificationService {
   NotificationDetails _getNotificationDetails({
     String channelId = 'jagacuan_reminders',
     String channelName = 'Pengingat Tabungan JagaCuan',
-    String channelDescription = 'Notifikasi pengingat & motivasi tabungan JagaCuan',
+    String channelDescription =
+        'Notifikasi pengingat & motivasi tabungan JagaCuan',
   }) {
     return NotificationDetails(
       android: AndroidNotificationDetails(
@@ -64,12 +68,7 @@ class NotificationService {
     required String body,
   }) async {
     await init();
-    await _notificationsPlugin.show(
-      id,
-      title,
-      body,
-      _getNotificationDetails(),
-    );
+    await _notificationsPlugin.show(id, title, body, _getNotificationDetails());
   }
 
   // 2. Schedule Target Reminder Notification
@@ -81,7 +80,11 @@ class NotificationService {
     required double remainingAmount,
   }) async {
     await init();
-    final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final fmt = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     final remainingStr = fmt.format(remainingAmount);
 
     final title = '⏰ Waktunya Nabung! ($targetTitle)';
@@ -104,7 +107,11 @@ class NotificationService {
     required double amount,
   }) async {
     await init();
-    final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final fmt = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     final amountStr = fmt.format(amount);
 
     await _notificationsPlugin.show(
@@ -125,7 +132,11 @@ class NotificationService {
     required int activeTargetsCount,
   }) async {
     await init();
-    final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final fmt = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     final totalStr = fmt.format(weeklyTotal);
 
     await _notificationsPlugin.show(
@@ -147,7 +158,11 @@ class NotificationService {
     required double remainingAmount,
   }) async {
     await init();
-    final fmt = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final fmt = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     final remainingStr = fmt.format(remainingAmount);
 
     await _notificationsPlugin.show(

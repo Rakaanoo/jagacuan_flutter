@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import '../../../../data/models/target_item.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../nabar_room/views/connect_google_modal.dart';
 import '../../nabar_room/views/nabar_room_view.dart';
+import '../../nabar_room/views/room_preview_modal.dart';
 import '../../target_list/view_models/target_list_view_model.dart';
 import '../../../core/i18n.dart';
+import '../../../core/theme.dart';
 
 class SelectTargetTypeModal extends StatelessWidget {
   final Function(TargetType) onSelectType;
@@ -16,15 +19,15 @@ class SelectTargetTypeModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TargetListViewModel>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = context.isDarkMode;
 
-    final bg = isDark ? const Color(0xFF1B1C23) : const Color(0xFFFAF6EF);
-    final cardBg = isDark ? const Color(0xFF22242F) : const Color(0xFFEFEADF);
-    final cardBorder = isDark ? const Color(0xFF333746) : const Color(0xFFDDD5C7);
-    final iconBg = isDark ? const Color(0xFF2D303D) : const Color(0xFFEAE1D1);
-    final titleColor = isDark ? Colors.white : const Color(0xFF2C2418);
-    final subColor = isDark ? const Color(0xFF9DA2B3) : const Color(0xFF7A6F60);
-    final iconColor = isDark ? const Color(0xFF8B9BFF) : const Color(0xFF2C2418);
+    final bg = context.appCard;
+    final cardBg = context.appSurface;
+    final cardBorder = context.appBorder;
+    final iconBg = isDark ? context.appBg : const Color(0xFFEAE1D1);
+    final titleColor = context.appTextPrimary;
+    final subColor = context.appTextMuted;
+    final iconColor = isDark ? context.appAccent : context.appTextPrimary;
 
     return Container(
       decoration: BoxDecoration(
@@ -45,14 +48,22 @@ class SelectTargetTypeModal extends StatelessWidget {
               color: titleColor,
             ),
           ),
+          const SizedBox(height: 4),
+          Text(
+            AppTranslations.tr(vm.language, 'select_type.subtitle'),
+            style: TextStyle(fontSize: 13, color: subColor),
+          ),
           const SizedBox(height: 18),
 
-          // Option 1: Tabungan Target
+          // Option 1: Tabungan Pribadi (Target Impian)
           _buildOptionCard(
             context,
             icon: LucideIcons.flag,
             title: AppTranslations.tr(vm.language, 'select_type.nabung'),
-            subtitle: AppTranslations.tr(vm.language, 'select_type.nabung_desc'),
+            subtitle: AppTranslations.tr(
+              vm.language,
+              'select_type.nabung_desc',
+            ),
             cardBg: cardBg,
             cardBorder: cardBorder,
             iconBg: iconBg,
@@ -61,25 +72,9 @@ class SelectTargetTypeModal extends StatelessWidget {
             subColor: subColor,
             onTap: () => onSelectType(TargetType.target),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Option 2: Tabungan Berkala
-          _buildOptionCard(
-            context,
-            icon: LucideIcons.trophy,
-            title: AppTranslations.tr(vm.language, 'select_type.berkala'),
-            subtitle: AppTranslations.tr(vm.language, 'select_type.berkala_desc'),
-            cardBg: cardBg,
-            cardBorder: cardBorder,
-            iconBg: iconBg,
-            iconColor: iconColor,
-            titleColor: titleColor,
-            subColor: subColor,
-            onTap: () => onSelectType(TargetType.berkala),
-          ),
-          const SizedBox(height: 12),
-
-          // Option 3: Nabung Bareng (Buat Room Baru)
+          // Option 2: Nabung Bareng (Nabar)
           _buildOptionCard(
             context,
             icon: LucideIcons.users,
@@ -88,34 +83,7 @@ class SelectTargetTypeModal extends StatelessWidget {
             cardBg: cardBg,
             cardBorder: cardBorder,
             iconBg: iconBg,
-            iconColor: iconColor,
-            titleColor: titleColor,
-            subColor: subColor,
-            onTap: () {
-              final supabaseRepo = context.read<SupabaseNabarRepository>();
-              if (supabaseRepo.currentUser == null) {
-                Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (_) => const ConnectGoogleModal(),
-                );
-              } else {
-                onSelectType(TargetType.nabar);
-              }
-            },
-          ),
-          const SizedBox(height: 12),
-
-          // Option 4: Gabung via Link Room Nabar
-          _buildOptionCard(
-            context,
-            icon: LucideIcons.link,
-            title: AppTranslations.tr(vm.language, 'select_type.join_room'),
-            subtitle: AppTranslations.tr(vm.language, 'select_type.join_room_desc'),
-            cardBg: cardBg,
-            cardBorder: cardBorder,
-            iconBg: iconBg,
-            iconColor: const Color(0xFF10B981),
+            iconColor: context.appAccent,
             titleColor: titleColor,
             subColor: subColor,
             onTap: () {
@@ -128,7 +96,7 @@ class SelectTargetTypeModal extends StatelessWidget {
                 );
               } else {
                 Navigator.pop(context);
-                _showJoinRoomDialog(context, vm.language);
+                _showNabarActionSheet(context, vm.language);
               }
             },
           ),
@@ -142,11 +110,14 @@ class SelectTargetTypeModal extends StatelessWidget {
                 onTap: () => Navigator.pop(context),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E202A) : cardBg,
+                    color: context.appSurface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isDark ? const Color(0xFF353949) : cardBorder, width: 1.2),
+                    border: Border.all(color: cardBorder, width: 1.2),
                   ),
                   child: Text(
                     AppTranslations.tr(vm.language, 'common.cancel'),
@@ -165,7 +136,7 @@ class SelectTargetTypeModal extends StatelessWidget {
     );
   }
 
-  Widget _buildOptionCard(
+  static Widget _buildOptionCard(
     BuildContext context, {
     required IconData icon,
     required String title,
@@ -230,13 +201,116 @@ class SelectTargetTypeModal extends StatelessWidget {
     );
   }
 
+  void _showNabarActionSheet(BuildContext context, String lang) {
+    final bg = context.appCard;
+    final cardBg = context.appSurface;
+    final cardBorder = context.appBorder;
+    final titleColor = context.appTextPrimary;
+    final subColor = context.appTextMuted;
+    final isDark = context.isDarkMode;
+    final iconBg = isDark ? context.appBg : const Color(0xFFEAE1D1);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) => Container(
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppTranslations.tr(lang, 'select_type.nabar'),
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                    color: titleColor,
+                  ),
+                ),
+                InkWell(
+                  onTap: () => Navigator.pop(sheetCtx),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: cardBg,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(LucideIcons.x, size: 18, color: subColor),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              AppTranslations.tr(lang, 'select_type.nabar_choice_subtitle'),
+              style: TextStyle(fontSize: 13, color: subColor),
+            ),
+            const SizedBox(height: 18),
+
+            // Sub-Option A: Buat Room Baru
+            _buildOptionCard(
+              context,
+              icon: LucideIcons.circlePlus,
+              title: AppTranslations.tr(lang, 'select_type.nabar_create_new'),
+              subtitle: AppTranslations.tr(
+                lang,
+                'select_type.nabar_create_new_desc',
+              ),
+              cardBg: cardBg,
+              cardBorder: cardBorder,
+              iconBg: iconBg,
+              iconColor: context.appAccent,
+              titleColor: titleColor,
+              subColor: subColor,
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                onSelectType(TargetType.nabar);
+              },
+            ),
+            const SizedBox(height: 12),
+
+            // Sub-Option B: Gabung via Kode / Link
+            _buildOptionCard(
+              context,
+              icon: LucideIcons.link,
+              title: AppTranslations.tr(lang, 'select_type.join_room'),
+              subtitle: AppTranslations.tr(lang, 'select_type.join_room_desc'),
+              cardBg: cardBg,
+              cardBorder: cardBorder,
+              iconBg: iconBg,
+              iconColor: const Color(0xFF10B981),
+              titleColor: titleColor,
+              subColor: subColor,
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                _showJoinRoomDialog(context, lang);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showJoinRoomDialog(BuildContext context, String lang) {
     final controller = TextEditingController();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(AppTranslations.tr(lang, 'select_type.join_dialog_title'), style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          AppTranslations.tr(lang, 'select_type.join_dialog_title'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,10 +320,17 @@ class SelectTargetTypeModal extends StatelessWidget {
             TextField(
               controller: controller,
               autofocus: true,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+              maxLines: 2,
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
               decoration: InputDecoration(
-                hintText: 'https://jagacuan-app.vercel.app/room/...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                hintText: AppTranslations.tr(
+                  lang,
+                  'select_type.join_dialog_hint',
+                ),
+                hintStyle: const TextStyle(fontSize: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -267,22 +348,63 @@ class SelectTargetTypeModal extends StatelessWidget {
               Navigator.pop(ctx);
               try {
                 final repo = context.read<SupabaseNabarRepository>();
-                final room = await repo.joinRoomByInviteCode(codeInput);
-                if (room != null && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Permintaan bergabung ke "${room.name}" telah dikirim! Menunggu verifikasi Host.'),
-                    ),
-                  );
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => NabarRoomView(roomId: room.id)),
-                  );
+                // Fetch preview first
+                final preview = await repo.getRoomPreview(codeInput);
+                if (preview != null && context.mounted) {
+                  RoomPreviewModal.show(context, preview);
+                } else {
+                  // Direct join fallback if preview wasn't available
+                  final room = await repo.joinRoomByInviteCode(codeInput);
+                  if (room != null && context.mounted) {
+                    try {
+                      final vm = context.read<TargetListViewModel>();
+                      final existing = vm.targets.any(
+                        (t) => t.roomId == room.id || t.id == room.id,
+                      );
+                      if (!existing) {
+                        final target = TargetItem(
+                          id: room.id,
+                          title: room.name,
+                          targetAmount: room.targetAmount,
+                          currentAmount: room.currentAmount,
+                          startDate: DateTime.now(),
+                          endDate: room.targetDate,
+                          note: room.note,
+                          coverUrl: room.coverUrl,
+                          type: TargetType.nabar,
+                          roomId: room.id,
+                        );
+                        await vm.addTarget(target);
+                      }
+                    } catch (_) {}
+
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          AppTranslations.tr(
+                            lang,
+                            'select_type.join_request_sent',
+                          ).replaceAll('{name}', room.name),
+                        ),
+                      ),
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NabarRoomView(roomId: room.id),
+                      ),
+                    );
+                  }
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Gagal bergabung: $e')),
+                    SnackBar(
+                      content: Text(
+                        '${AppTranslations.tr(lang, 'select_type.join_error')}: $e',
+                      ),
+                    ),
                   );
                 }
               }
@@ -291,7 +413,9 @@ class SelectTargetTypeModal extends StatelessWidget {
               backgroundColor: const Color(0xFF10B981),
               foregroundColor: Colors.white,
             ),
-            child: Text(AppTranslations.tr(lang, 'select_type.join_dialog_submit')),
+            child: Text(
+              AppTranslations.tr(lang, 'select_type.join_dialog_submit'),
+            ),
           ),
         ],
       ),

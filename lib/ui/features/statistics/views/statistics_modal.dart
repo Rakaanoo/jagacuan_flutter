@@ -7,6 +7,7 @@ import '../../target_list/view_models/target_list_view_model.dart';
 import '../../../../data/models/target_item.dart';
 import '../../../../data/models/transaction_item.dart';
 import '../../../core/formatters.dart';
+import '../../../core/i18n.dart';
 
 enum StatPeriod { week, month, year }
 
@@ -24,6 +25,8 @@ class _StatisticsModalState extends State<StatisticsModal> {
   Widget build(BuildContext context) {
     final vm = context.watch<TargetListViewModel>();
     final isDark = vm.isDarkMode;
+    final lang = vm.language;
+    final currency = vm.currency;
 
     final bg = isDark ? const Color(0xFF16171B) : const Color(0xFFFAF7F2);
     final cardBg = isDark ? const Color(0xFF23242A) : const Color(0xFFFAF6EF);
@@ -36,6 +39,8 @@ class _StatisticsModalState extends State<StatisticsModal> {
     final allTransactions = targets.expand((t) => t.transactions).toList();
 
     final now = DateTime.now();
+    final dayNames = AppTranslations.getDayNames(lang);
+    final monthNames = AppTranslations.getMonthNames(lang);
 
     // 1. Filter transaksi sesuai periode yang dipilih
     List<TransactionItem> filteredTransactions;
@@ -48,7 +53,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
       // 7 Hari Terakhir
       final startOfWeek = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 6));
       periodRangeText =
-          '${startOfWeek.day} ${_monthName(startOfWeek.month)} - ${now.day} ${_monthName(now.month)} ${now.year}';
+          '${startOfWeek.day} ${monthNames[(startOfWeek.month - 1).clamp(0, 11)]} - ${now.day} ${monthNames[(now.month - 1).clamp(0, 11)]} ${now.year}';
 
       barLabels = [];
       barDepositCounts = List.filled(7, 0);
@@ -56,7 +61,8 @@ class _StatisticsModalState extends State<StatisticsModal> {
 
       for (int i = 0; i < 7; i++) {
         final d = startOfWeek.add(Duration(days: i));
-        barLabels.add(_shortDayName(d.weekday));
+        // dayNames index: 0 is Sun, 1 is Mon, ..., 6 is Sat. d.weekday % 7 gives Sunday=0
+        barLabels.add(dayNames[d.weekday % 7]);
       }
 
       filteredTransactions = allTransactions.where((tx) {
@@ -76,13 +82,14 @@ class _StatisticsModalState extends State<StatisticsModal> {
         }
       }
     } else if (_selectedPeriod == StatPeriod.month) {
-      // 1 Bulan (4 Minggu)
+      // 1 Bulan (4-5 Minggu)
       final startOfMonth = DateTime(now.year, now.month, 1);
       final endOfMonth = DateTime(now.year, now.month + 1, 0);
       periodRangeText =
-          '1 ${_monthName(now.month)} - ${endOfMonth.day} ${_monthName(now.month)} ${now.year}';
+          '1 ${monthNames[(now.month - 1).clamp(0, 11)]} - ${endOfMonth.day} ${monthNames[(now.month - 1).clamp(0, 11)]} ${now.year}';
 
-      barLabels = ['M1', 'M2', 'M3', 'M4', 'M5'];
+      final prefix = lang == 'id' ? 'M' : 'W';
+      barLabels = ['$prefix 1', '$prefix 2', '$prefix 3', '$prefix 4', '$prefix 5'];
       barDepositCounts = List.filled(5, 0);
       barDepositAmounts = List.filled(5, 0.0);
 
@@ -101,8 +108,13 @@ class _StatisticsModalState extends State<StatisticsModal> {
       }
     } else {
       // 1 Tahun (12 Bulan)
-      periodRangeText = 'Januari - Desember ${now.year}';
-      barLabels = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+      periodRangeText = AppTranslations.tr(lang, 'stats.year_range').replaceAll('{year}', now.year.toString());
+      barLabels = monthNames.map((m) {
+        if (lang == 'ja' || lang == 'zh') {
+          return m;
+        }
+        return m.isNotEmpty ? m.substring(0, 1) : m;
+      }).toList();
       barDepositCounts = List.filled(12, 0);
       barDepositAmounts = List.filled(12, 0.0);
 
@@ -139,7 +151,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
     final avgPerSlot = totalSlots > 0 ? totalDeposits / totalSlots : 0.0;
     final maxDepositCount = barDepositCounts.fold<int>(0, max);
 
-    // AI Dynamic Insights yang tersinkron dengan batang
+    // AI Dynamic Insights yang tersinkron dengan bahasa & mata uang
     final aiInsights = _generateAiInsights(
       period: _selectedPeriod,
       targets: targets,
@@ -148,7 +160,8 @@ class _StatisticsModalState extends State<StatisticsModal> {
       totalSlots: totalSlots,
       totalDeposits: totalDeposits,
       totalWithdrawals: totalWithdrawals,
-      currency: vm.currency,
+      currency: currency,
+      lang: lang,
       barLabels: barLabels,
       barCounts: barDepositCounts,
     );
@@ -207,7 +220,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Statistik & Insight',
+                          AppTranslations.tr(lang, 'stats.title'),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -215,7 +228,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                           ),
                         ),
                         Text(
-                          'Ringkasan kedisiplinan & transaksi tabunganmu',
+                          AppTranslations.tr(lang, 'stats.subtitle_new'),
                           style: TextStyle(fontSize: 12, color: mutedTextColor),
                         ),
                       ],
@@ -241,19 +254,19 @@ class _StatisticsModalState extends State<StatisticsModal> {
               child: Row(
                 children: [
                   _buildPeriodPill(
-                    label: '1 Minggu',
+                    label: AppTranslations.tr(lang, 'stats.period_1_week'),
                     period: StatPeriod.week,
                     active: _selectedPeriod == StatPeriod.week,
                     isDark: isDark,
                   ),
                   _buildPeriodPill(
-                    label: '1 Bulan',
+                    label: AppTranslations.tr(lang, 'stats.period_1_month'),
                     period: StatPeriod.month,
                     active: _selectedPeriod == StatPeriod.month,
                     isDark: isDark,
                   ),
                   _buildPeriodPill(
-                    label: '1 Tahun',
+                    label: AppTranslations.tr(lang, 'stats.period_1_year'),
                     period: StatPeriod.year,
                     active: _selectedPeriod == StatPeriod.year,
                     isDark: isDark,
@@ -290,7 +303,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Kedisiplinan Menabung',
+                            AppTranslations.tr(lang, 'stats.discipline_title'),
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -308,8 +321,10 @@ class _StatisticsModalState extends State<StatisticsModal> {
                         ),
                         child: Text(
                           _selectedPeriod == StatPeriod.week
-                              ? 'Mingguan'
-                              : (_selectedPeriod == StatPeriod.month ? 'Bulanan' : 'Tahunan'),
+                              ? AppTranslations.tr(lang, 'stats.badge_weekly')
+                              : (_selectedPeriod == StatPeriod.month
+                                  ? AppTranslations.tr(lang, 'stats.badge_monthly')
+                                  : AppTranslations.tr(lang, 'stats.badge_yearly')),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -323,7 +338,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
 
                   // Big Value
                   Text(
-                    'Total Setoran',
+                    AppTranslations.tr(lang, 'stats.total_deposit_label'),
                     style: TextStyle(fontSize: 12, color: mutedTextColor),
                   ),
                   const SizedBox(height: 2),
@@ -341,7 +356,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'kali setor',
+                        AppTranslations.tr(lang, 'stats.times_deposit'),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -350,7 +365,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                       ),
                       const Spacer(),
                       Text(
-                        formatRupiah(totalDepositAmount, vm.currency),
+                        formatRupiah(totalDepositAmount, currency),
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -384,7 +399,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                   Divider(color: cardBorder, height: 1),
                   const SizedBox(height: 16),
 
-                  // 3 Columns: Rutin, Rata-rata, Disiplin (Sesuai foto kedua)
+                  // 3 Columns: Rutin, Rata-rata, Disiplin
                   Row(
                     children: [
                       Expanded(
@@ -392,12 +407,14 @@ class _StatisticsModalState extends State<StatisticsModal> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Rutin',
+                              AppTranslations.tr(lang, 'stats.metric_routine'),
                               style: TextStyle(fontSize: 12, color: mutedTextColor),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              '$activeSlots/$totalSlots Hari',
+                              AppTranslations.tr(lang, 'stats.metric_days')
+                                  .replaceAll('{active}', activeSlots.toString())
+                                  .replaceAll('{total}', totalSlots.toString()),
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -405,7 +422,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                               ),
                             ),
                             Text(
-                              'Hari aktif',
+                              AppTranslations.tr(lang, 'stats.metric_active_days'),
                               style: TextStyle(fontSize: 10, color: mutedTextColor),
                             ),
                           ],
@@ -416,7 +433,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Rata-rata',
+                              AppTranslations.tr(lang, 'stats.metric_average'),
                               style: TextStyle(fontSize: 12, color: mutedTextColor),
                             ),
                             const SizedBox(height: 2),
@@ -429,7 +446,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                               ),
                             ),
                             Text(
-                              'Per slot waktu',
+                              AppTranslations.tr(lang, 'stats.metric_per_slot'),
                               style: TextStyle(fontSize: 10, color: mutedTextColor),
                             ),
                           ],
@@ -440,7 +457,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Disiplin',
+                              AppTranslations.tr(lang, 'stats.metric_discipline'),
                               style: TextStyle(fontSize: 12, color: mutedTextColor),
                             ),
                             const SizedBox(height: 2),
@@ -453,7 +470,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                               ),
                             ),
                             Text(
-                              'Tingkat patuh',
+                              AppTranslations.tr(lang, 'stats.metric_compliance'),
                               style: TextStyle(fontSize: 10, color: mutedTextColor),
                             ),
                           ],
@@ -493,7 +510,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Aktivitas Transaksi',
+                            AppTranslations.tr(lang, 'stats.activity_title'),
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -536,7 +553,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Total Transaksi',
+                                  AppTranslations.tr(lang, 'stats.total_transactions_center'),
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
@@ -561,7 +578,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                   ),
                   const SizedBox(height: 18),
 
-                  // Left & Right Split: Deposit vs Tarik (Sesuai foto kedua)
+                  // Left & Right Split: Deposit vs Tarik
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -580,7 +597,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Setor (Deposit)',
+                                AppTranslations.tr(lang, 'stats.deposit_legend'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -591,7 +608,8 @@ class _StatisticsModalState extends State<StatisticsModal> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '$totalDeposits kali',
+                            AppTranslations.tr(lang, 'stats.times_count')
+                                .replaceAll('{count}', totalDeposits.toString()),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -599,7 +617,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                             ),
                           ),
                           Text(
-                            formatRupiah(totalDepositAmount, vm.currency),
+                            formatRupiah(totalDepositAmount, currency),
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -631,7 +649,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Tarik (Withdraw)',
+                                AppTranslations.tr(lang, 'stats.withdraw_legend'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -642,7 +660,8 @@ class _StatisticsModalState extends State<StatisticsModal> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '$totalWithdrawals kali',
+                            AppTranslations.tr(lang, 'stats.times_count')
+                                .replaceAll('{count}', totalWithdrawals.toString()),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -650,7 +669,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                             ),
                           ),
                           Text(
-                            formatRupiah(totalWithdrawAmount, vm.currency),
+                            formatRupiah(totalWithdrawAmount, currency),
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -689,9 +708,9 @@ class _StatisticsModalState extends State<StatisticsModal> {
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'AI Smart Financial Reminder',
-                        style: TextStyle(
+                      Text(
+                        AppTranslations.tr(lang, 'stats.ai_title'),
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                           color: Color(0xFFF59E0B),
@@ -704,9 +723,9 @@ class _StatisticsModalState extends State<StatisticsModal> {
                           color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          'Tersinkron',
-                          style: TextStyle(
+                        child: Text(
+                          AppTranslations.tr(lang, 'stats.ai_synced'),
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFFF59E0B),
@@ -748,7 +767,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                                     TextSpan(
                                       text: insight['desc'],
                                       style: TextStyle(
-                                        color: textColor.withValues(alpha: 0.9),
+                                        color: textColor.withValues(alpha: 0.85),
                                       ),
                                     ),
                                   ],
@@ -789,12 +808,12 @@ class _StatisticsModalState extends State<StatisticsModal> {
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
+          alignment: Alignment.center,
           child: Text(
             label,
-            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
-              fontWeight: active ? FontWeight.bold : FontWeight.w500,
+              fontWeight: FontWeight.bold,
               color: active
                   ? Colors.white
                   : (isDark ? const Color(0xFFA0A5B5) : const Color(0xFF7A6F60)),
@@ -814,20 +833,20 @@ class _StatisticsModalState extends State<StatisticsModal> {
     required Color textColor,
     required Color mutedTextColor,
   }) {
-    final effectiveMax = max(maxVal, 3);
-    final avgRatio = (avg / effectiveMax).clamp(0.0, 1.0);
+    final effectiveMax = max(3, maxVal);
 
-    return LayoutBuilder(builder: (ctx, constraints) {
-      final chartHeight = constraints.maxHeight - 24; // room for x labels
+    return LayoutBuilder(builder: (context, constraints) {
+      final chartHeight = constraints.maxHeight - 24; // space for bottom labels
 
       return Stack(
+        clipBehavior: Clip.none,
         children: [
-          // Average Horizontal Line
+          // Horizontal Average Line
           if (avg > 0)
             Positioned(
               left: 0,
-              right: 32,
-              bottom: 24 + (chartHeight * avgRatio),
+              right: 36,
+              bottom: 24 + (chartHeight * (avg / effectiveMax)).clamp(0.0, chartHeight),
               child: Row(
                 children: [
                   Expanded(
@@ -836,12 +855,12 @@ class _StatisticsModalState extends State<StatisticsModal> {
                       color: const Color(0xFF7C8BFF).withValues(alpha: 0.4),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   Text(
                     '${avg.toStringAsFixed(1)} avg',
                     style: const TextStyle(
                       fontSize: 9,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                       color: Color(0xFF7C8BFF),
                     ),
                   ),
@@ -952,13 +971,16 @@ class _StatisticsModalState extends State<StatisticsModal> {
     required int totalDeposits,
     required int totalWithdrawals,
     required String currency,
+    required String lang,
     required List<String> barLabels,
     required List<int> barCounts,
   }) {
     final List<Map<String, String>> list = [];
     final periodName = period == StatPeriod.week
-        ? '1 Minggu'
-        : (period == StatPeriod.month ? '1 Bulan' : '1 Tahun');
+        ? AppTranslations.tr(lang, 'stats.period_1_week')
+        : (period == StatPeriod.month
+            ? AppTranslations.tr(lang, 'stats.period_1_month')
+            : AppTranslations.tr(lang, 'stats.period_1_year'));
 
     // 1. Evaluasi Kedisiplinan Terhubung dengan Batang
     String peakSlot = '';
@@ -973,20 +995,29 @@ class _StatisticsModalState extends State<StatisticsModal> {
     if (totalDeposits == 0) {
       list.add({
         'icon': '📊',
-        'title': 'Kedisiplinan Periode $periodName',
-        'desc': 'Belum ada transaksi setoran yang tercatat pada periode ini. Mulai setor nominal kecil hari ini untuk membentuk grafik kedisiplinanmu!',
+        'title': AppTranslations.tr(lang, 'stats.ai_discipline_title').replaceAll('{period}', periodName),
+        'desc': AppTranslations.tr(lang, 'stats.ai_no_deposits'),
       });
     } else if (disciplinePct >= 70) {
       list.add({
         'icon': '🔥',
-        'title': 'Konsistensi Sangat Baik',
-        'desc': 'Kamu disiplin menabung di $activeSlots dari $totalSlots titik waktu ($disciplinePct%). Paling aktif pada slot "$peakSlot" dengan $maxCount setoran.',
+        'title': AppTranslations.tr(lang, 'stats.ai_high_discipline_title'),
+        'desc': AppTranslations.tr(lang, 'stats.ai_high_discipline_desc')
+            .replaceAll('{active}', activeSlots.toString())
+            .replaceAll('{total}', totalSlots.toString())
+            .replaceAll('{percent}', disciplinePct.toStringAsFixed(0))
+            .replaceAll('{peak}', peakSlot)
+            .replaceAll('{count}', maxCount.toString()),
       });
     } else {
       list.add({
         'icon': '📈',
-        'title': 'Tingkatkan Frekuensi',
-        'desc': 'Tercatat $activeSlots dari $totalSlots titik waktu terisi setoran ($disciplinePct%). Terdapat ${totalSlots - activeSlots} slot kosong. Cobalah aktifkan alarm pengingat harian!',
+        'title': AppTranslations.tr(lang, 'stats.ai_improve_title'),
+        'desc': AppTranslations.tr(lang, 'stats.ai_improve_desc')
+            .replaceAll('{active}', activeSlots.toString())
+            .replaceAll('{total}', totalSlots.toString())
+            .replaceAll('{percent}', disciplinePct.toStringAsFixed(0))
+            .replaceAll('{empty}', (totalSlots - activeSlots).toString()),
       });
     }
 
@@ -994,8 +1025,8 @@ class _StatisticsModalState extends State<StatisticsModal> {
     if (targets.isEmpty) {
       list.add({
         'icon': '🎯',
-        'title': 'Buat Target Impian',
-        'desc': 'Belum ada target celengan aktif. Buat target impian pertamamu dengan menekan tombol (+) di halaman utama.',
+        'title': AppTranslations.tr(lang, 'stats.ai_empty_title'),
+        'desc': AppTranslations.tr(lang, 'stats.ai_empty_desc'),
       });
     } else {
       final activeList = targets.where((t) => !t.isCompleted).toList();
@@ -1003,19 +1034,21 @@ class _StatisticsModalState extends State<StatisticsModal> {
         activeList.sort((a, b) =>
             (b.targetAmount - b.currentAmount).compareTo(a.targetAmount - a.currentAmount));
         final top = activeList.first;
-        final sisa = top.targetAmount - top.currentAmount;
+        final sisa = max(0.0, top.targetAmount - top.currentAmount);
         final dailyPacing = (sisa / 30).ceilToDouble();
 
         list.add({
           'icon': '🎯',
-          'title': 'Target Prioritas "${top.title}"',
-          'desc': 'Sisa target ${formatRupiah(sisa, currency)}. Cukup sisihkan ${formatRupiah(dailyPacing, currency)} per hari agar target ini tercapai dalam 30 hari ke depan.',
+          'title': AppTranslations.tr(lang, 'stats.ai_priority_title').replaceAll('{title}', top.title),
+          'desc': AppTranslations.tr(lang, 'stats.ai_priority_desc')
+              .replaceAll('{remaining}', formatRupiah(sisa, currency))
+              .replaceAll('{daily}', formatRupiah(dailyPacing, currency)),
         });
       } else {
         list.add({
           'icon': '🏆',
-          'title': 'Semua Target Tercapai',
-          'desc': 'Hebat! Seluruh celengan kamu sudah 100% tuntas. Kamu bisa mengarsipkan celengan ini dan membuat target baru.',
+          'title': AppTranslations.tr(lang, 'stats.ai_all_done_title'),
+          'desc': AppTranslations.tr(lang, 'stats.ai_all_done_desc'),
         });
       }
     }
@@ -1025,28 +1058,20 @@ class _StatisticsModalState extends State<StatisticsModal> {
       final withdrawRatio = (totalWithdrawals / (totalDeposits + totalWithdrawals) * 100).toStringAsFixed(0);
       list.add({
         'icon': '⚠️',
-        'title': 'Pengendalian Penarikan',
-        'desc': 'Terdapat $totalWithdrawals kali penarikan ($withdrawRatio% dari seluruh transaksi). Tahan keinginan menarik uang celengan agar targetmu tidak tertunda.',
+        'title': AppTranslations.tr(lang, 'stats.ai_withdraw_title'),
+        'desc': AppTranslations.tr(lang, 'stats.ai_withdraw_desc')
+            .replaceAll('{count}', totalWithdrawals.toString())
+            .replaceAll('{percent}', withdrawRatio),
       });
     } else if (totalDeposits > 0) {
       list.add({
         'icon': '✨',
-        'title': 'Tabungan Utuh 100%',
-        'desc': 'Nol penarikan tercatat di periode ini! Seluruh uang tabunganmu terkumpul aman tanpa ada kebocoran dana.',
+        'title': AppTranslations.tr(lang, 'stats.ai_intact_title'),
+        'desc': AppTranslations.tr(lang, 'stats.ai_intact_desc'),
       });
     }
 
     return list;
-  }
-
-  String _monthName(int month) {
-    const m = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    return m[(month - 1).clamp(0, 11)];
-  }
-
-  String _shortDayName(int weekday) {
-    const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-    return days[(weekday - 1).clamp(0, 6)];
   }
 }
 

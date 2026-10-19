@@ -122,5 +122,54 @@ void main() {
       expect(vm.filteredTargets.first.isCompleted, isTrue);
       expect(vm.filteredTargets.first.progressPercentage, equals(100));
     });
+
+    test('Creating a dummy target and archiving it moves it between Berjalan and Selesai', () async {
+      final fakeRepo = FakeLocalStorageRepository();
+      final vm = TargetListViewModel(localRepo: fakeRepo);
+      await vm.loadTargets();
+
+      // 1. Buat tabungan dummy yang belum selesai (0%)
+      final dummyTarget = TargetItem(
+        id: 'dummy-1',
+        title: 'Tabungan Dummy Arsip',
+        targetAmount: 100000,
+        currentAmount: 0,
+        startDate: DateTime.now(),
+        endDate: DateTime.now().add(const Duration(days: 10)),
+        type: TargetType.target,
+      );
+
+      await vm.addTarget(dummyTarget);
+
+      // Verifikasi di Tab 0 (Berjalan)
+      vm.setTabIndex(0);
+      expect(vm.filteredTargets.any((t) => t.id == 'dummy-1'), isTrue);
+      expect(vm.filteredTargets.firstWhere((t) => t.id == 'dummy-1').isArchived, isFalse);
+
+      // Verifikasi di Tab 1 (Selesai) belum ada
+      vm.setTabIndex(1);
+      expect(vm.filteredTargets.any((t) => t.id == 'dummy-1'), isFalse);
+
+      // 2. Arsipkan target dummy ini
+      await vm.toggleArchiveTarget('dummy-1');
+
+      // Verifikasi sekarang HILANG dari Tab 0 (Berjalan)
+      vm.setTabIndex(0);
+      expect(vm.filteredTargets.any((t) => t.id == 'dummy-1'), isFalse);
+
+      // Dan MUNCUL di Tab 1 (Selesai/Arsip) dengan status isArchived == true
+      vm.setTabIndex(1);
+      expect(vm.filteredTargets.any((t) => t.id == 'dummy-1'), isTrue);
+      final archivedTarget = vm.filteredTargets.firstWhere((t) => t.id == 'dummy-1');
+      expect(archivedTarget.isArchived, isTrue);
+
+      // 3. Batalkan arsip (Unarchive)
+      await vm.toggleArchiveTarget('dummy-1');
+
+      // Verifikasi kembali lagi ke Tab 0 (Berjalan)
+      vm.setTabIndex(0);
+      expect(vm.filteredTargets.any((t) => t.id == 'dummy-1'), isTrue);
+      expect(vm.filteredTargets.firstWhere((t) => t.id == 'dummy-1').isArchived, isFalse);
+    });
   });
 }

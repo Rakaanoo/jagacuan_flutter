@@ -1230,6 +1230,96 @@ class _TargetDetailViewState extends State<TargetDetailView> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: Icon(
+              target.isArchived
+                  ? LucideIcons.archiveRestore
+                  : LucideIcons.archive,
+              size: 20,
+              color: target.isArchived
+                  ? const Color(0xFFF59E0B)
+                  : (isDark ? Colors.white70 : Colors.black87),
+            ),
+            tooltip: target.isArchived ? 'Batal Arsipkan' : 'Arsipkan Target',
+            onPressed: () async {
+              final isArchiving = !target.isArchived;
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  backgroundColor: cardBg,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: cardBorder),
+                  ),
+                  title: Row(
+                    children: [
+                      Icon(
+                        isArchiving
+                            ? LucideIcons.archive
+                            : LucideIcons.archiveRestore,
+                        color: const Color(0xFFF59E0B),
+                        size: 22,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        isArchiving ? 'Arsipkan Celengan?' : 'Batalkan Arsip?',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textCol,
+                        ),
+                      ),
+                    ],
+                  ),
+                  content: Text(
+                    isArchiving
+                        ? 'Celengan ini akan dipindahkan ke tab "Selesai" (arsip prestasi).'
+                        : 'Celengan ini akan dikembalikan ke tab "Berjalan".',
+                    style: TextStyle(fontSize: 13, color: subText),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: Text(
+                        AppTranslations.tr(vm.language, 'common.cancel'),
+                        style: TextStyle(color: subText),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFF59E0B),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        isArchiving ? 'Arsipkan' : 'Kembalikan',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                await vm.toggleArchiveTarget(target.id);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isArchiving
+                            ? 'Target berhasil diarsipkan ke tab Selesai.'
+                            : 'Target dikembalikan ke tab Berjalan.',
+                      ),
+                      backgroundColor: const Color(0xFF16A34A),
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+          IconButton(
             icon: const Icon(LucideIcons.pencil, size: 20),
             onPressed: () {
               // Edit target modal or functionality

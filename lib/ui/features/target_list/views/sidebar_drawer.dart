@@ -227,18 +227,8 @@ class SidebarDrawer extends StatelessWidget {
                       iconColor: iconColor,
                       textColor: textColor,
                       onTap: () {
-                        final messenger = ScaffoldMessenger.of(context);
                         Navigator.pop(context);
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              AppTranslations.tr(
-                                vm.language,
-                                'sidebar.archive_menu_snackbar',
-                              ),
-                            ),
-                          ),
-                        );
+                        vm.setTabIndex(1);
                       },
                     ),
                     const SizedBox(height: 6),

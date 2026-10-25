@@ -27,6 +27,7 @@ class NabarRoomView extends StatefulWidget {
 class _NabarRoomViewState extends State<NabarRoomView> {
   NabarRoom? _room;
   bool _isLoading = true;
+  String _pacingMode = 'daily';
   final _amountController = TextEditingController();
 
   StreamSubscription<List<NabarMessage>>? _msgSubscription;
@@ -1270,6 +1271,22 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             ),
             const SizedBox(height: 16),
 
+            // Card: Rekomendasi Setoran (Shared Pacing per Member)
+            if (room.currentAmount < room.targetAmount) ...[
+              _buildNabarPacingCard(
+                context,
+                room,
+                vm,
+                isDark,
+                cardBg,
+                cardBorder,
+                mutedTextColor,
+                textColor,
+                myNetEquity,
+              ),
+              const SizedBox(height: 16),
+            ],
+
             // Action Buttons: Setor & Tarik
             Row(
               children: [
@@ -1829,17 +1846,247 @@ class _NabarRoomViewState extends State<NabarRoomView> {
     );
   }
 
+  Widget _buildNabarPacingCard(
+    BuildContext context,
+    NabarRoom room,
+    TargetListViewModel vm,
+    bool isDark,
+    Color cardBg,
+    Color cardBorder,
+    Color subText,
+    Color textCol,
+    double myNetEquity,
+  ) {
+    final remaining = (room.targetAmount - room.currentAmount).clamp(
+      0.0,
+      double.infinity,
+    );
+    final memberCount = room.members.isNotEmpty ? room.members.length : 1;
+    final myShareRemaining = remaining / memberCount;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final endDay = DateTime(
+      room.targetDate.year,
+      room.targetDate.month,
+      room.targetDate.day,
+    );
+    final daysDiff = endDay.difference(today).inDays;
+    final safeDays = daysDiff > 0 ? daysDiff : 1;
+
+    double pacingAmount;
+    String periodLabel;
+    String hintText;
+
+    if (_pacingMode == 'daily') {
+      pacingAmount = (myShareRemaining / safeDays).ceilToDouble();
+      periodLabel = '/ ${AppTranslations.tr(vm.language, 'detail.per_day')}';
+      hintText = AppTranslations.tr(
+        vm.language,
+        'nabar.pacing_daily_hint',
+      ).replaceAll('{members}', memberCount.toString());
+    } else if (_pacingMode == 'weekly') {
+      pacingAmount = (myShareRemaining / safeDays * 7)
+          .clamp(0.0, myShareRemaining)
+          .ceilToDouble();
+      periodLabel = '/ ${AppTranslations.tr(vm.language, 'detail.per_week')}';
+      hintText = AppTranslations.tr(
+        vm.language,
+        'nabar.pacing_weekly_hint',
+      ).replaceAll('{members}', memberCount.toString());
+    } else {
+      final paydaysLeft = (safeDays / 30).ceil().clamp(1, 120);
+      pacingAmount = (myShareRemaining / paydaysLeft).ceilToDouble();
+      periodLabel = '/ ${AppTranslations.tr(vm.language, 'detail.per_payday')}';
+      hintText = AppTranslations.tr(vm.language, 'nabar.pacing_payday_hint')
+          .replaceAll('{members}', memberCount.toString())
+          .replaceAll('{count}', paydaysLeft.toString());
+    }
+
+    final accentColor = isDark
+        ? const Color(0xFF7C8BFF)
+        : const Color(0xFF2C2418);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.calculator,
+                  color: Color(0xFF10B981),
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  AppTranslations.tr(vm.language, 'detail.pacing_title'),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: textCol,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Pacing Mode Switcher Tabs
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: context.appSurface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                _buildPacingTab(
+                  'daily',
+                  AppTranslations.tr(vm.language, 'detail.pacing_daily'),
+                  accentColor,
+                  textCol,
+                ),
+                _buildPacingTab(
+                  'weekly',
+                  AppTranslations.tr(vm.language, 'detail.pacing_weekly'),
+                  accentColor,
+                  textCol,
+                ),
+                _buildPacingTab(
+                  'monthly',
+                  AppTranslations.tr(vm.language, 'detail.pacing_monthly'),
+                  accentColor,
+                  textCol,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Pacing Amount & Hint
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                formatRupiah(pacingAmount, vm.currency),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF10B981),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(periodLabel, style: TextStyle(fontSize: 12, color: subText)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(hintText, style: TextStyle(fontSize: 12, color: subText)),
+          const SizedBox(height: 14),
+
+          // Shortcut Setor Pacing
+          SizedBox(
+            width: double.infinity,
+            height: 42,
+            child: ElevatedButton(
+              onPressed: () => _showTransactionModal(
+                context,
+                true,
+                myNetEquity,
+                initialAmount: pacingAmount,
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                AppTranslations.tr(
+                  vm.language,
+                  'detail.pacing_quick_btn',
+                ).replaceAll(
+                  '{amount}',
+                  formatRupiah(pacingAmount, vm.currency),
+                ),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPacingTab(
+    String mode,
+    String label,
+    Color accentColor,
+    Color textCol,
+  ) {
+    final isSelected = _pacingMode == mode;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _pacingMode = mode),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? accentColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? Colors.white : textCol,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showTransactionModal(
     BuildContext context,
     bool initialIsDeposit,
-    double myNetEquity,
-  ) {
+    double myNetEquity, {
+    double? initialAmount,
+  }) {
     final vm = context.read<TargetListViewModel>();
     final lang = vm.language;
     final currency = vm.currency;
     final curSymbol = (currencySymbolMap[currency] ?? 'Rp').trim();
     bool isDeposit = initialIsDeposit;
-    _amountController.clear();
+    if (initialAmount != null && initialAmount > 0) {
+      _amountController.text = formatAmountOnly(
+        initialAmount.round(),
+        currency,
+      );
+    } else {
+      _amountController.clear();
+    }
 
     showModalBottomSheet(
       context: context,

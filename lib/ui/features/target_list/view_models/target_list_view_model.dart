@@ -19,10 +19,7 @@ class TargetListViewModel extends ChangeNotifier {
     if (savedLang != null && savedLang.isNotEmpty) {
       _language = savedLang;
     }
-    final savedCurr = await localRepo.getSavedCurrency();
-    if (savedCurr != null && savedCurr.isNotEmpty) {
-      _currency = savedCurr;
-    }
+    _currency = 'IDR';
     final savedDark = await localRepo.getSavedDarkMode();
     if (savedDark != null) {
       _isDarkMode = savedDark;

@@ -14,6 +14,10 @@ class AppTranslations {
 
   static const Map<String, Map<String, String>> _dictionaries = {
     'id': {
+      'nabar.pacing_daily_hint': 'Patungan per orang ({members} anggota) setiap hari agar selesai tepat waktu.',
+      'nabar.pacing_weekly_hint': 'Patungan per orang ({members} anggota) setiap minggu sampai deadline.',
+      'nabar.pacing_payday_hint': 'Patungan per orang ({members} anggota) tiap gajian (sekitar {count} kali lagi).',
+
       'stats.subtitle_new': 'Ringkasan kedisiplinan & transaksi tabunganmu',
       'stats.period_1_week': '1 Minggu',
       'stats.period_1_month': '1 Bulan',
@@ -150,11 +154,11 @@ class AppTranslations {
       'detail.withdraw_exceeds_balance':
           'Nominal penarikan tidak boleh melebihi saldo tabungan saat ini!',
       'detail.available_balance': 'Saldo tersedia: {amount}',
-      'detail.pacing_title': 'Rekomendasi Nabung (Smart Pacing)',
+      'detail.pacing_title': 'Rekomendasi Setoran',
       'detail.pacing_daily': 'Harian',
       'detail.pacing_weekly': 'Mingguan',
       'detail.pacing_monthly': 'Gajian (Bln)',
-      'detail.pacing_quick_btn': '⚡ Setor Pacing: {amount}',
+      'detail.pacing_quick_btn': 'Setor {amount}',
       'detail.pacing_target_met': 'Target impian sudah tercapai! 🎉',
       'detail.smash_piggy': '🔨 Pecahkan Celengan',
       'detail.celebrate_title': '🎉 Target Berhasil Dicapai!',
@@ -343,6 +347,11 @@ class AppTranslations {
 
     },
     'en': {
+      'detail.pacing_quick_btn': 'Deposit {amount}',
+      'nabar.pacing_daily_hint': 'Share per person ({members} members) daily to finish on time.',
+      'nabar.pacing_weekly_hint': 'Share per person ({members} members) weekly until deadline.',
+      'nabar.pacing_payday_hint': 'Share per person ({members} members) each payday (~{count} paydays left).',
+
       'stats.subtitle_new': 'Summary of your savings discipline & transactions',
       'stats.period_1_week': '1 Week',
       'stats.period_1_month': '1 Month',
@@ -482,11 +491,10 @@ class AppTranslations {
       'detail.withdraw_exceeds_balance':
           'Withdrawal amount cannot exceed current savings balance!',
       'detail.available_balance': 'Available balance: {amount}',
-      'detail.pacing_title': 'Smart Savings Pacing',
+      'detail.pacing_title': 'Deposit Recommendation',
       'detail.pacing_daily': 'Daily',
       'detail.pacing_weekly': 'Weekly',
       'detail.pacing_monthly': 'Payday (Mo)',
-      'detail.pacing_quick_btn': '⚡ Setor Pacing: {amount}',
       'detail.pacing_target_met': 'Savings target achieved! 🎉',
       'detail.smash_piggy': '🔨 Smash Piggy Bank',
       'detail.celebrate_title': '🎉 Target Achieved!',
@@ -676,6 +684,10 @@ class AppTranslations {
 
     },
     'de': {
+      'nabar.pacing_daily_hint': 'Anteil pro Person ({members} Mitglieder) täglich für pünktlichen Abschluss.',
+      'nabar.pacing_weekly_hint': 'Anteil pro Person ({members} Mitglieder) wöchentlich bis zur Frist.',
+      'nabar.pacing_payday_hint': 'Anteil pro Person ({members} Mitglieder) pro Zahltag (~{count} übrig).',
+
       'stats.subtitle_new': 'Zusammenfassung deiner Spardisziplin & Transaktionen',
       'stats.period_1_week': '1 Woche',
       'stats.period_1_month': '1 Monat',
@@ -949,9 +961,9 @@ class AppTranslations {
       'detail.estimate_reached': 'Erreicht 🎉',
       'detail.pacing_daily': 'Täglich',
       'detail.pacing_monthly': 'Zahltag',
-      'detail.pacing_quick_btn': '⚡ Spar-Pacing einzahlen: {amount}',
+      'detail.pacing_quick_btn': '{amount} einzahlen',
       'detail.pacing_target_met': 'Sparziel bereits erreicht!',
-      'detail.pacing_title': 'Smart Pacing (Spar-Rhythmus)',
+      'detail.pacing_title': 'Einzahlungsempfehlung',
       'detail.pacing_weekly': 'Wöchentlich',
       'detail.smash_piggy': 'Sparschwein zerschlagen',
       'detail.unarchive_btn': 'Zu aktiven Zielen wiederherstellen',
@@ -1003,6 +1015,10 @@ class AppTranslations {
 
     },
     'fr': {
+      'nabar.pacing_daily_hint': 'Part par personne ({members} membres) chaque jour pour finir à temps.',
+      'nabar.pacing_weekly_hint': 'Part par personne ({members} membres) chaque semaine jusqu’à l’échéance.',
+      'nabar.pacing_payday_hint': 'Part par personne ({members} membres) à chaque paie (~{count} restantes).',
+
       'stats.subtitle_new': 'Résumé de votre discipline d’épargne et transactions',
       'stats.period_1_week': '1 Semaine',
       'stats.period_1_month': '1 Mois',
@@ -1278,9 +1294,9 @@ class AppTranslations {
       'detail.estimate_reached': 'Atteint 🎉',
       'detail.pacing_daily': 'Quotidien',
       'detail.pacing_monthly': 'Jour de paie',
-      'detail.pacing_quick_btn': '⚡ Dépôt de rythme: {amount}',
+      'detail.pacing_quick_btn': 'Déposer {amount}',
       'detail.pacing_target_met': 'Objectif déjà atteint !',
-      'detail.pacing_title': 'Smart Pacing (Rythme d’épargne)',
+      'detail.pacing_title': 'Recommandation de dépôt',
       'detail.pacing_weekly': 'Hebdomadaire',
       'detail.smash_piggy': 'Briser la tirelire',
       'detail.unarchive_btn': 'Restaurer aux objectifs actifs',
@@ -1332,6 +1348,10 @@ class AppTranslations {
 
     },
     'it': {
+      'nabar.pacing_daily_hint': 'Quota a persona ({members} membri) ogni giorno per finire in tempo.',
+      'nabar.pacing_weekly_hint': 'Quota a persona ({members} membri) ogni settimana fino alla scadenza.',
+      'nabar.pacing_payday_hint': 'Quota a persona ({members} membri) a ogni stipendio (~{count} rimasti).',
+
       'stats.subtitle_new': 'Riepilogo della disciplina di risparmio e transazioni',
       'stats.period_1_week': '1 Settimana',
       'stats.period_1_month': '1 Mese',
@@ -1607,9 +1627,9 @@ class AppTranslations {
       'detail.estimate_reached': 'Raggiunto 🎉',
       'detail.pacing_daily': 'Giornaliero',
       'detail.pacing_monthly': 'Giorno di paga',
-      'detail.pacing_quick_btn': '⚡ Deposita ritmo: {amount}',
+      'detail.pacing_quick_btn': 'Deposita {amount}',
       'detail.pacing_target_met': 'Obiettivo di risparmio già raggiunto!',
-      'detail.pacing_title': 'Smart Pacing (Ritmo di risparmio)',
+      'detail.pacing_title': 'Consiglio di deposito',
       'detail.pacing_weekly': 'Settimanale',
       'detail.smash_piggy': 'Rompi il salvadanaio',
       'detail.unarchive_btn': 'Ripristina tra gli obiettivi attivi',
@@ -1661,6 +1681,10 @@ class AppTranslations {
 
     },
     'es': {
+      'nabar.pacing_daily_hint': 'Cuota por persona ({members} miembros) al día para terminar a tiempo.',
+      'nabar.pacing_weekly_hint': 'Cuota por persona ({members} miembros) por semana hasta la fecha límite.',
+      'nabar.pacing_payday_hint': 'Cuota por persona ({members} miembros) cada día de pago (~{count} restantes).',
+
       'stats.subtitle_new': 'Resumen de tu disciplina de ahorro y transacciones',
       'stats.period_1_week': '1 Semana',
       'stats.period_1_month': '1 Mes',
@@ -1936,9 +1960,9 @@ class AppTranslations {
       'detail.estimate_reached': 'Alcanzado 🎉',
       'detail.pacing_daily': 'Diario',
       'detail.pacing_monthly': 'Día de pago',
-      'detail.pacing_quick_btn': '⚡ Depositar ritmo: {amount}',
+      'detail.pacing_quick_btn': 'Depositar {amount}',
       'detail.pacing_target_met': '¡La meta de ahorro ya se ha cumplido!',
-      'detail.pacing_title': 'Smart Pacing (Ritmo de ahorro)',
+      'detail.pacing_title': 'Recomendación de depósito',
       'detail.pacing_weekly': 'Semanal',
       'detail.smash_piggy': 'Romper hucha',
       'detail.unarchive_btn': 'Restaurar a metas activas',
@@ -1990,6 +2014,10 @@ class AppTranslations {
 
     },
     'ja': {
+      'nabar.pacing_daily_hint': '期日通りに達成するための1人あたり（{members}人）の毎日の目安です。',
+      'nabar.pacing_weekly_hint': '期日までの1人あたり（{members}人）の毎週の目安です。',
+      'nabar.pacing_payday_hint': '給料日ごとの1人あたり（{members}人）の目安です（残り約{count}回）。',
+
       'stats.subtitle_new': '貯金の継続性と取引履歴のサマリー',
       'stats.period_1_week': '1週間',
       'stats.period_1_month': '1ヶ月',
@@ -2248,9 +2276,9 @@ class AppTranslations {
       'detail.estimate_reached': '達成 🎉',
       'detail.pacing_daily': '毎日',
       'detail.pacing_monthly': '給料日',
-      'detail.pacing_quick_btn': '⚡ ペーシング入金: {amount}',
+      'detail.pacing_quick_btn': '{amount} を入金',
       'detail.pacing_target_met': '貯金目標はすでに達成されています！',
-      'detail.pacing_title': 'スマートペーシング (貯金ペース)',
+      'detail.pacing_title': 'おすすめ入金額',
       'detail.pacing_weekly': '毎週',
       'detail.smash_piggy': '貯金箱を割る',
       'detail.unarchive_btn': 'アクティブな目標に戻す',
@@ -2302,6 +2330,10 @@ class AppTranslations {
 
     },
     'zh': {
+      'nabar.pacing_daily_hint': '按时完成目标每人（共{members}人）每天需存入的金额。',
+      'nabar.pacing_weekly_hint': '截止日期前每人（共{members}人）每周需存入的金额。',
+      'nabar.pacing_payday_hint': '每个发薪日每人（共{members}人）需存入的金额（约剩{count}次）。',
+
       'stats.subtitle_new': '储蓄自律度与交易记录摘要',
       'stats.period_1_week': '1周',
       'stats.period_1_month': '1个月',
@@ -2559,9 +2591,9 @@ class AppTranslations {
       'detail.estimate_reached': '已达成 🎉',
       'detail.pacing_daily': '每日',
       'detail.pacing_monthly': '发薪日',
-      'detail.pacing_quick_btn': '⚡ 节奏存入: {amount}',
+      'detail.pacing_quick_btn': '存入 {amount}',
       'detail.pacing_target_met': '储蓄目标已经达成！',
-      'detail.pacing_title': 'Smart Pacing (存钱节奏)',
+      'detail.pacing_title': '存款建议',
       'detail.pacing_weekly': '每周',
       'detail.smash_piggy': '砸存钱罐',
       'detail.unarchive_btn': '恢复至进行中目标',
@@ -2613,6 +2645,10 @@ class AppTranslations {
 
     },
     'th': {
+      'nabar.pacing_daily_hint': 'เฉลี่ยต่อคน ({members} สมาชิก) ทุกวันเพื่อให้เสร็จทันเวลา',
+      'nabar.pacing_weekly_hint': 'เฉลี่ยต่อคน ({members} สมาชิก) ทุกสัปดาห์จนถึงกำหนด',
+      'nabar.pacing_payday_hint': 'เฉลี่ยต่อคน ({members} สมาชิก) ทุกวันเงินเดือนออก (เหลือ ~{count} ครั้ง)',
+
       'stats.subtitle_new': 'สรุปวินัยการออมและประวัติการทำรายการของคุณ',
       'stats.period_1_week': '1 สัปดาห์',
       'stats.period_1_month': '1 เดือน',
@@ -2877,9 +2913,9 @@ class AppTranslations {
       'detail.estimate_reached': 'สำเร็จ 🎉',
       'detail.pacing_daily': 'รายวัน',
       'detail.pacing_monthly': 'วันเงินเดือนออก',
-      'detail.pacing_quick_btn': '⚡ ฝากตามจังหวะ: {amount}',
+      'detail.pacing_quick_btn': 'ฝาก {amount}',
       'detail.pacing_target_met': 'เป้าหมายการออมบรรลุแล้ว!',
-      'detail.pacing_title': 'Smart Pacing (จังหวะการออม)',
+      'detail.pacing_title': 'คำแนะนำการฝาก',
       'detail.pacing_weekly': 'รายสัปดาห์',
       'detail.smash_piggy': 'ทุบกระปุกออมสิน',
       'detail.unarchive_btn': 'กู้คืนไปยังเป้าหมายที่ใช้งานอยู่',
@@ -2931,6 +2967,10 @@ class AppTranslations {
 
     },
     'hi': {
+      'nabar.pacing_daily_hint': 'समय पर पूरा करने के लिए प्रति व्यक्ति ({members} सदस्य) दैनिक हिस्सा।',
+      'nabar.pacing_weekly_hint': 'समय सीमा तक प्रति व्यक्ति ({members} सदस्य) साप्ताहिक हिस्सा।',
+      'nabar.pacing_payday_hint': 'प्रत्येक वेतन दिवस पर प्रति व्यक्ति ({members} सदस्य) हिस्सा (~{count} शेष)।',
+
       'stats.subtitle_new': 'आपके बचत अनुशासन और लेन-देन का सारांश',
       'stats.period_1_week': '1 सप्ताह',
       'stats.period_1_month': '1 महीना',
@@ -3200,9 +3240,9 @@ class AppTranslations {
       'detail.estimate_reached': 'प्राप्त किया 🎉',
       'detail.pacing_daily': 'दैनिक',
       'detail.pacing_monthly': 'वेतन दिवस',
-      'detail.pacing_quick_btn': '⚡ गति से जमा करें: {amount}',
+      'detail.pacing_quick_btn': '{amount} जमा करें',
       'detail.pacing_target_met': 'बचत लक्ष्य पहले ही पूरा हो चुका है!',
-      'detail.pacing_title': 'Smart Pacing (बचत गति)',
+      'detail.pacing_title': 'जमा अनुशंसा',
       'detail.pacing_weekly': 'साप्ताहिक',
       'detail.smash_piggy': 'गुल्लक फोड़ें',
       'detail.unarchive_btn': 'सक्रिय लक्ष्यों में पुनर्स्थापित करें',

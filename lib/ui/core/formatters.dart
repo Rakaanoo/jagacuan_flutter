@@ -2,77 +2,35 @@ import 'package:intl/intl.dart';
 
 const Map<String, double> exchangeRates = {
   'IDR': 1.0,
-  'USD': 1.0 / 15500.0,
-  'EUR': 1.0 / 17000.0,
-  'JPY': 1.0 / 105.0,
-  'CNY': 1.0 / 2150.0,
-  'THB': 1.0 / 450.0,
-  'INR': 1.0 / 185.0,
-  'GBP': 1.0 / 20000.0,
 };
 
 const Map<String, String> currencySymbolMap = {
   'IDR': 'Rp ',
-  'USD': '\$ ',
-  'EUR': '€ ',
-  'JPY': '¥ ',
-  'CNY': '¥ ',
-  'THB': '฿ ',
-  'INR': '₹ ',
-  'GBP': '£ ',
 };
 
 double toBaseIDR(num amountInActiveCurrency, [String currency = 'IDR']) {
-  final rate = exchangeRates[currency] ?? 1.0;
-  return (amountInActiveCurrency / rate);
+  return amountInActiveCurrency.toDouble();
 }
 
 double fromBaseIDR(num baseAmountIDR, [String currency = 'IDR']) {
-  final rate = exchangeRates[currency] ?? 1.0;
-  return (baseAmountIDR * rate);
+  return baseAmountIDR.toDouble();
 }
 
 String formatCurrency(num amount, [String currency = 'IDR']) {
-  final rate = exchangeRates[currency] ?? 1.0;
-  final converted = amount * rate;
-
-  final localeMap = {
-    'IDR': 'id_ID',
-    'USD': 'en_US',
-    'EUR': 'de_DE',
-    'JPY': 'ja_JP',
-    'CNY': 'zh_CN',
-    'THB': 'th_TH',
-    'INR': 'hi_IN',
-    'GBP': 'en_GB',
-  };
-
-  final digits = (currency == 'IDR' || currency == 'JPY') ? 0 : 2;
-
   final formatter = NumberFormat.currency(
-    locale: localeMap[currency] ?? 'id_ID',
-    symbol: currencySymbolMap[currency] ?? 'Rp ',
-    decimalDigits: digits,
+    locale: 'id_ID',
+    symbol: 'Rp ',
+    decimalDigits: 0,
   );
-  return formatter.format(converted);
+  return formatter.format(amount);
 }
 
 String formatRupiah(num amount, [String currency = 'IDR']) {
-  return formatCurrency(amount, currency);
+  return formatCurrency(amount, 'IDR');
 }
 
 String formatAmountOnly(num amount, [String currency = 'IDR']) {
-  final localeMap = {
-    'IDR': 'id_ID',
-    'USD': 'en_US',
-    'EUR': 'de_DE',
-    'JPY': 'ja_JP',
-    'CNY': 'zh_CN',
-    'THB': 'th_TH',
-    'INR': 'hi_IN',
-    'GBP': 'en_GB',
-  };
-  final formatter = NumberFormat.decimalPattern(localeMap[currency] ?? 'id_ID');
+  final formatter = NumberFormat.decimalPattern('id_ID');
   return formatter.format(amount);
 }
 

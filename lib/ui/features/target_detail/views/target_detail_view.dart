@@ -985,16 +985,18 @@ class _TargetDetailViewState extends State<TargetDetailView> {
     String hintText;
 
     if (_pacingMode == 'daily') {
-      pacingAmount = remaining / safeDays;
+      pacingAmount = (remaining / safeDays).ceilToDouble();
       periodLabel = '/ ${AppTranslations.tr(vm.language, 'detail.per_day')}';
       hintText = AppTranslations.tr(vm.language, 'detail.pacing_daily_hint');
     } else if (_pacingMode == 'weekly') {
-      pacingAmount = (remaining / safeDays * 7).clamp(0.0, remaining);
+      pacingAmount = (remaining / safeDays * 7)
+          .clamp(0.0, remaining)
+          .ceilToDouble();
       periodLabel = '/ ${AppTranslations.tr(vm.language, 'detail.per_week')}';
       hintText = AppTranslations.tr(vm.language, 'detail.pacing_weekly_hint');
     } else {
       final paydaysLeft = (safeDays / 30).ceil().clamp(1, 120);
-      pacingAmount = remaining / paydaysLeft;
+      pacingAmount = (remaining / paydaysLeft).ceilToDouble();
       periodLabel = '/ ${AppTranslations.tr(vm.language, 'detail.per_payday')}';
       hintText = AppTranslations.tr(
         vm.language,
@@ -1028,7 +1030,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      LucideIcons.sparkles,
+                      LucideIcons.calculator,
                       color: Color(0xFF10B981),
                       size: 16,
                     ),
@@ -1105,14 +1107,20 @@ class _TargetDetailViewState extends State<TargetDetailView> {
           SizedBox(
             width: double.infinity,
             height: 42,
-            child: ElevatedButton.icon(
+            child: ElevatedButton(
               onPressed: () => _showTransactionModal(
                 context,
                 true,
                 initialAmount: pacingAmount,
               ),
-              icon: const Icon(LucideIcons.zap, size: 16),
-              label: Text(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
                 AppTranslations.tr(
                   vm.language,
                   'detail.pacing_quick_btn',
@@ -1123,13 +1131,6 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF10B981),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
@@ -1985,68 +1986,66 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                       Row(
                         children: [
                           Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () =>
-                                  _showTransactionModal(context, true),
-                              icon: const Icon(
-                                LucideIcons.arrowDownLeft,
-                                size: 16,
-                                color: Color(0xFF16A34A),
-                              ),
-                              label: Text(
-                                AppTranslations.tr(
-                                  vm.language,
-                                  'detail.save_deposit',
+                            child: SizedBox(
+                              height: 48,
+                              child: ElevatedButton.icon(
+                                onPressed: () =>
+                                    _showTransactionModal(context, true),
+                                icon: const Icon(
+                                  LucideIcons.plusCircle,
+                                  size: 18,
                                 ),
-                                style: const TextStyle(
-                                  color: Color(0xFF16A34A),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                                label: Text(
+                                  AppTranslations.tr(
+                                    vm.language,
+                                    'nabar.add_deposit',
+                                  ),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                  color: Color(0xFF16A34A),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF16A34A),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () =>
-                                  _showTransactionModal(context, false),
-                              icon: const Icon(
-                                LucideIcons.arrowUpRight,
-                                size: 16,
-                                color: Color(0xFFDC2626),
-                              ),
-                              label: Text(
-                                AppTranslations.tr(
-                                  vm.language,
-                                  'detail.save_withdraw',
-                                ),
-                                style: const TextStyle(
-                                  color: Color(0xFFDC2626),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
+                            child: SizedBox(
+                              height: 48,
+                              child: OutlinedButton.icon(
+                                onPressed: () =>
+                                    _showTransactionModal(context, false),
+                                icon: const Icon(
+                                  LucideIcons.arrowUpRight,
+                                  size: 18,
                                   color: Color(0xFFDC2626),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                label: Text(
+                                  AppTranslations.tr(
+                                    vm.language,
+                                    'nabar.withdraw_btn',
+                                  ),
+                                  style: const TextStyle(
+                                    color: Color(0xFFDC2626),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 10,
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(
+                                    color: Color(0xFFDC2626),
+                                    width: 1.5,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
                                 ),
                               ),
                             ),

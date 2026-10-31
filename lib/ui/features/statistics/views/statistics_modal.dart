@@ -701,9 +701,9 @@ class _StatisticsModalState extends State<StatisticsModal> {
                   Row(
                     children: [
                       const Icon(
-                        LucideIcons.sparkles,
+                        LucideIcons.fileText,
                         color: Color(0xFFF59E0B),
-                        size: 20,
+                        size: 18,
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -734,17 +734,22 @@ class _StatisticsModalState extends State<StatisticsModal> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Bullet Points AI Insight
+                  // Bullet Points Insight
                   ...aiInsights.map((insight) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              insight['icon'] ?? '•',
-                              style: const TextStyle(fontSize: 14),
+                            Container(
+                              margin: const EdgeInsets.only(top: 5),
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFF59E0B),
+                                shape: BoxShape.circle,
+                              ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: RichText(
                                 text: TextSpan(
@@ -991,13 +996,11 @@ class _StatisticsModalState extends State<StatisticsModal> {
 
     if (totalDeposits == 0) {
       list.add({
-        'icon': '📊',
         'title': AppTranslations.tr(lang, 'stats.ai_discipline_title').replaceAll('{period}', periodName),
         'desc': AppTranslations.tr(lang, 'stats.ai_no_deposits'),
       });
     } else if (disciplinePct >= 70) {
       list.add({
-        'icon': '🔥',
         'title': AppTranslations.tr(lang, 'stats.ai_high_discipline_title'),
         'desc': AppTranslations.tr(lang, 'stats.ai_high_discipline_desc')
             .replaceAll('{active}', activeSlots.toString())
@@ -1008,7 +1011,6 @@ class _StatisticsModalState extends State<StatisticsModal> {
       });
     } else {
       list.add({
-        'icon': '📈',
         'title': AppTranslations.tr(lang, 'stats.ai_improve_title'),
         'desc': AppTranslations.tr(lang, 'stats.ai_improve_desc')
             .replaceAll('{active}', activeSlots.toString())
@@ -1021,7 +1023,6 @@ class _StatisticsModalState extends State<StatisticsModal> {
     // 2. Rekomendasi Target Prioritas
     if (targets.isEmpty) {
       list.add({
-        'icon': '🎯',
         'title': AppTranslations.tr(lang, 'stats.ai_empty_title'),
         'desc': AppTranslations.tr(lang, 'stats.ai_empty_desc'),
       });
@@ -1035,7 +1036,6 @@ class _StatisticsModalState extends State<StatisticsModal> {
         final dailyPacing = (sisa / 30).ceilToDouble();
 
         list.add({
-          'icon': '🎯',
           'title': AppTranslations.tr(lang, 'stats.ai_priority_title').replaceAll('{title}', top.title),
           'desc': AppTranslations.tr(lang, 'stats.ai_priority_desc')
               .replaceAll('{remaining}', formatRupiah(sisa))
@@ -1043,7 +1043,6 @@ class _StatisticsModalState extends State<StatisticsModal> {
         });
       } else {
         list.add({
-          'icon': '🏆',
           'title': AppTranslations.tr(lang, 'stats.ai_all_done_title'),
           'desc': AppTranslations.tr(lang, 'stats.ai_all_done_desc'),
         });
@@ -1054,7 +1053,6 @@ class _StatisticsModalState extends State<StatisticsModal> {
     if (totalWithdrawals > 0) {
       final withdrawRatio = (totalWithdrawals / (totalDeposits + totalWithdrawals) * 100).toStringAsFixed(0);
       list.add({
-        'icon': '⚠️',
         'title': AppTranslations.tr(lang, 'stats.ai_withdraw_title'),
         'desc': AppTranslations.tr(lang, 'stats.ai_withdraw_desc')
             .replaceAll('{count}', totalWithdrawals.toString())
@@ -1062,7 +1060,6 @@ class _StatisticsModalState extends State<StatisticsModal> {
       });
     } else if (totalDeposits > 0) {
       list.add({
-        'icon': '✨',
         'title': AppTranslations.tr(lang, 'stats.ai_intact_title'),
         'desc': AppTranslations.tr(lang, 'stats.ai_intact_desc'),
       });

@@ -1033,76 +1033,56 @@ class _NabarRoomViewState extends State<NabarRoomView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Target Photo Banner (if available)
-            if (room.coverUrl != null && room.coverUrl!.isNotEmpty) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: Container(
-                  height: 180,
-                  width: double.infinity,
-                  decoration: BoxDecoration(color: context.appSurface),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      _buildCoverImage(room.coverUrl!),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 70,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.65),
-                              ],
+            // Target Photo Banner or Dummy Target Circle (matching tabungan pribadi)
+            Container(
+              width: double.infinity,
+              height: 220,
+              decoration: BoxDecoration(
+                color: context.appCard,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: context.appBorder),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: room.coverUrl != null && room.coverUrl!.isNotEmpty
+                  ? _buildCoverImage(room.coverUrl!)
+                  : Center(
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: context.appTextMuted.withValues(alpha: 0.4),
+                            width: 3,
+                          ),
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: context.appTextMuted.withValues(alpha: 0.4),
+                                width: 3,
+                              ),
+                            ),
+                            child: Center(
+                              child: Container(
+                                width: 14,
+                                height: 14,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: context.appTextMuted.withValues(alpha: 0.7),
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      Positioned(
-                        bottom: 12,
-                        left: 14,
-                        right: 14,
-                        child: Row(
-                          children: [
-                            const Icon(
-                              LucideIcons.target,
-                              size: 14,
-                              color: Colors.white70,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                '${AppTranslations.tr(lang, 'nabar.target_photo')}: ${room.name}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  shadows: [
-                                    Shadow(
-                                      offset: Offset(0, 1),
-                                      blurRadius: 3,
-                                      color: Colors.black54,
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+                    ),
+            ),
+            const SizedBox(height: 16),
 
             // Progress Card
             Card(

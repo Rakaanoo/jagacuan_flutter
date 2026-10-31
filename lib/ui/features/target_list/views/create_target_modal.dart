@@ -65,8 +65,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
       return;
     }
     final number = double.tryParse(numeric) ?? 0;
-    final vm = context.read<TargetListViewModel>();
-    final formatted = formatAmountOnly(number, vm.currency);
+    final formatted = formatAmountOnly(number);
     _amountController.value = TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
@@ -113,7 +112,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
 
     try {
       final vm = context.read<TargetListViewModel>();
-      final baseTargetAmount = toBaseIDR(amount, vm.currency);
+      final baseTargetAmount = amount;
       final id = DateTime.now().millisecondsSinceEpoch.toString();
 
       if (_selectedType == TargetType.nabar) {
@@ -397,7 +396,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${AppTranslations.tr(lang, 'create.amount_label')} (${(currencySymbolMap[vm.currency] ?? 'Rp').trim()})',
+                    '${AppTranslations.tr(lang, 'create.amount_label')} (Rp)',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

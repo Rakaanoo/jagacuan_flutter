@@ -65,17 +65,10 @@ https://jagacuan-app.vercel.app/room/$sampleUuid
       );
     });
 
-    test('formatAmountOnly formats numeric inputs correctly without exchange rate distortion', () {
-      expect(formatAmountOnly(50000, 'IDR'), equals('50.000'));
-      expect(formatAmountOnly(1000, 'USD'), equals('1,000'));
-      expect(formatAmountOnly(2500, 'EUR'), equals('2.500'));
-      expect(formatAmountOnly(10000, 'JPY'), equals('10,000'));
-    });
-
-    test('toBaseIDR and fromBaseIDR convert correctly', () {
-      expect(toBaseIDR(1, 'IDR'), equals(1.0));
-      expect(toBaseIDR(10, 'USD'), equals(155000.0));
-      expect(fromBaseIDR(155000.0, 'USD'), closeTo(10.0, 0.001));
+    test('formatAmountOnly formats numeric inputs in Rupiah correctly', () {
+      expect(formatAmountOnly(50000), equals('50.000'));
+      expect(formatAmountOnly(1000), equals('1.000'));
+      expect(formatAmountOnly(2500000), equals('2.500.000'));
     });
   });
 }

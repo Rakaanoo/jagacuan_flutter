@@ -26,7 +26,6 @@ class _StatisticsModalState extends State<StatisticsModal> {
     final vm = context.watch<TargetListViewModel>();
     final isDark = vm.isDarkMode;
     final lang = vm.language;
-    final currency = vm.currency;
 
     final bg = isDark ? const Color(0xFF16171B) : const Color(0xFFFAF7F2);
     final cardBg = isDark ? const Color(0xFF23242A) : const Color(0xFFFAF6EF);
@@ -160,7 +159,6 @@ class _StatisticsModalState extends State<StatisticsModal> {
       totalSlots: totalSlots,
       totalDeposits: totalDeposits,
       totalWithdrawals: totalWithdrawals,
-      currency: currency,
       lang: lang,
       barLabels: barLabels,
       barCounts: barDepositCounts,
@@ -365,7 +363,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                       ),
                       const Spacer(),
                       Text(
-                        formatRupiah(totalDepositAmount, currency),
+                        formatRupiah(totalDepositAmount),
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -617,7 +615,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                             ),
                           ),
                           Text(
-                            formatRupiah(totalDepositAmount, currency),
+                            formatRupiah(totalDepositAmount),
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -669,7 +667,7 @@ class _StatisticsModalState extends State<StatisticsModal> {
                             ),
                           ),
                           Text(
-                            formatRupiah(totalWithdrawAmount, currency),
+                            formatRupiah(totalWithdrawAmount),
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -970,7 +968,6 @@ class _StatisticsModalState extends State<StatisticsModal> {
     required int totalSlots,
     required int totalDeposits,
     required int totalWithdrawals,
-    required String currency,
     required String lang,
     required List<String> barLabels,
     required List<int> barCounts,
@@ -1041,8 +1038,8 @@ class _StatisticsModalState extends State<StatisticsModal> {
           'icon': '🎯',
           'title': AppTranslations.tr(lang, 'stats.ai_priority_title').replaceAll('{title}', top.title),
           'desc': AppTranslations.tr(lang, 'stats.ai_priority_desc')
-              .replaceAll('{remaining}', formatRupiah(sisa, currency))
-              .replaceAll('{daily}', formatRupiah(dailyPacing, currency)),
+              .replaceAll('{remaining}', formatRupiah(sisa))
+              .replaceAll('{daily}', formatRupiah(dailyPacing)),
         });
       } else {
         list.add({

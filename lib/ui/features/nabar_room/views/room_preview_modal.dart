@@ -149,7 +149,6 @@ class _RoomPreviewModalState extends State<RoomPreviewModal> {
   Widget build(BuildContext context) {
     final preview = widget.preview;
     final vm = context.watch<TargetListViewModel>();
-    final currency = vm.currency;
     final lang = vm.language;
 
     final bg = context.appCard;
@@ -313,7 +312,7 @@ class _RoomPreviewModalState extends State<RoomPreviewModal> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        formatRupiah(preview.targetAmount, currency),
+                        formatRupiah(preview.targetAmount),
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,

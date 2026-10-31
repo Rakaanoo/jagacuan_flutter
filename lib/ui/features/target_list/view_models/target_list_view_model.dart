@@ -19,7 +19,6 @@ class TargetListViewModel extends ChangeNotifier {
     if (savedLang != null && savedLang.isNotEmpty) {
       _language = savedLang;
     }
-    _currency = 'IDR';
     final savedDark = await localRepo.getSavedDarkMode();
     if (savedDark != null) {
       _isDarkMode = savedDark;
@@ -33,7 +32,6 @@ class TargetListViewModel extends ChangeNotifier {
   SortOption _activeSort = SortOption.newest;
   int _activeTabIndex = 0; // 0: Berjalan, 1: Selesai
   bool _isDarkMode = true;
-  String _currency = 'IDR';
   String _language = 'id';
 
   List<TargetItem> get targets => _targets;
@@ -42,14 +40,7 @@ class TargetListViewModel extends ChangeNotifier {
   SortOption get activeSort => _activeSort;
   int get activeTabIndex => _activeTabIndex;
   bool get isDarkMode => _isDarkMode;
-  String get currency => _currency;
   String get language => _language;
-
-  void setCurrency(String cur) {
-    _currency = cur;
-    localRepo.saveCurrency(cur);
-    notifyListeners();
-  }
 
   void setLanguage(String lang) {
     _language = lang;

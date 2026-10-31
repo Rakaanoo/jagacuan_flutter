@@ -27,9 +27,6 @@ class FakeLocalStorageRepository extends LocalStorageRepository {
   Future<String?> getSavedLanguage() async => 'id';
 
   @override
-  Future<String?> getSavedCurrency() async => 'IDR';
-
-  @override
   Future<bool?> getSavedDarkMode() async => true;
 }
 

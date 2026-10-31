@@ -92,8 +92,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
       return;
     }
     final number = double.tryParse(numeric) ?? 0;
-    final vm = context.read<TargetListViewModel>();
-    final formatted = formatAmountOnly(number, vm.currency);
+    final formatted = formatAmountOnly(number);
     _amountController.value = TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
@@ -187,14 +186,12 @@ class _TargetDetailViewState extends State<TargetDetailView> {
     double? initialAmount,
   }) {
     final vm = context.read<TargetListViewModel>();
-    final curSymbol = (currencySymbolMap[vm.currency] ?? 'Rp').trim();
+    const curSymbol = 'Rp';
     bool isDeposit = initialIsDeposit;
 
     if (initialAmount != null && initialAmount > 0) {
-      final userAmount = fromBaseIDR(initialAmount, vm.currency);
       final formatted = formatAmountOnly(
-        userAmount.ceilToDouble(),
-        vm.currency,
+        initialAmount.ceilToDouble(),
       );
       _amountController.text = formatted;
     } else {
@@ -362,7 +359,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                               'detail.available_balance',
                             ).replaceAll(
                               '{amount}',
-                              formatRupiah(currentAmount, vm.currency),
+                              formatRupiah(currentAmount),
                             ),
                             style: const TextStyle(
                               fontSize: 12,
@@ -416,7 +413,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                       final amt = double.tryParse(amtStr) ?? 0;
                       if (amt <= 0) return;
 
-                      final baseAmt = toBaseIDR(amt, vm.currency);
+                      final baseAmt = amt;
 
                       if (!isDeposit && baseAmt > currentAmount) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -833,7 +830,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                         ),
                       ),
                       Text(
-                        formatRupiah(target.currentAmount, vm.currency),
+                        formatRupiah(target.currentAmount),
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -854,7 +851,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                         ),
                       ),
                       Text(
-                        formatRupiah(target.targetAmount, vm.currency),
+                        formatRupiah(target.targetAmount),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -1088,7 +1085,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                formatRupiah(pacingAmount, vm.currency),
+                formatRupiah(pacingAmount),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -1126,7 +1123,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                   'detail.pacing_quick_btn',
                 ).replaceAll(
                   '{amount}',
-                  formatRupiah(pacingAmount, vm.currency),
+                  formatRupiah(pacingAmount),
                 ),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
@@ -1575,7 +1572,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                formatRupiah(target.targetAmount, vm.currency),
+                                formatRupiah(target.targetAmount),
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -1584,7 +1581,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '${formatRupiah(daysDiff > 0 ? ((target.targetAmount - target.currentAmount).clamp(0.0, double.infinity) / daysDiff) : 0, vm.currency)} /${AppTranslations.tr(vm.language, 'detail.per_day')}',
+                                '${formatRupiah(daysDiff > 0 ? ((target.targetAmount - target.currentAmount).clamp(0.0, double.infinity) / daysDiff) : 0)} /${AppTranslations.tr(vm.language, 'detail.per_day')}',
                                 style: TextStyle(fontSize: 13, color: subText),
                               ),
                             ],
@@ -1939,10 +1936,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  formatRupiah(
-                                    target.currentAmount,
-                                    vm.currency,
-                                  ),
+                                  formatRupiah(target.currentAmount),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -1968,7 +1962,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  formatRupiah(remaining, vm.currency),
+                                  formatRupiah(remaining),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -2112,7 +2106,7 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                                     ],
                                   ),
                                   Text(
-                                    '${tx.isDeposit ? '+' : '-'}${formatRupiah(tx.amount, vm.currency)}',
+                                    '${tx.isDeposit ? '+' : '-'}${formatRupiah(tx.amount)}',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,

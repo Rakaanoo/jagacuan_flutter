@@ -115,16 +115,6 @@ class LocalStorageRepository {
     await prefs.setString('jagacuan_language', lang);
   }
 
-  Future<String?> getSavedCurrency() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('jagacuan_currency');
-  }
-
-  Future<void> saveCurrency(String currency) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('jagacuan_currency', currency);
-  }
-
   Future<bool?> getSavedDarkMode() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('jagacuan_dark_mode');

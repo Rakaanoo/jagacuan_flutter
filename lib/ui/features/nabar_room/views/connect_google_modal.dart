@@ -497,7 +497,7 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                               ),
                             ),
                             subtitle: Text(
-                              '${AppTranslations.tr(vm.language, 'nabar.target')} ${formatRupiah(r.targetAmount, vm.currency)}',
+                              '${AppTranslations.tr(vm.language, 'nabar.target')} ${formatRupiah(r.targetAmount)}',
                             ),
                             trailing: Icon(
                               LucideIcons.chevronRight,

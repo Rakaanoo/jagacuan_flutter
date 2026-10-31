@@ -56,8 +56,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
       return;
     }
     final number = double.tryParse(numeric) ?? 0;
-    final vm = context.read<TargetListViewModel>();
-    final formatted = formatAmountOnly(number, vm.currency);
+    final formatted = formatAmountOnly(number);
     _amountController.value = TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
@@ -339,8 +338,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
 
     final vm = context.read<TargetListViewModel>();
     final lang = vm.language;
-    final currency = vm.currency;
-    final baseAmount = toBaseIDR(amount, currency);
+    final baseAmount = amount;
 
     if (!isDeposit && baseAmount > myNetEquity) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -349,7 +347,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             AppTranslations.tr(
               lang,
               'nabar.withdraw_limit_exceeded',
-            ).replaceAll('{amount}', formatRupiah(myNetEquity, currency)),
+            ).replaceAll('{amount}', formatRupiah(myNetEquity)),
           ),
           backgroundColor: const Color(0xFFDC2626),
         ),
@@ -389,7 +387,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                 lang,
                 'chat.system_deposited',
               ).replaceAll('{name}', name)
-            : '$name menarik dana ${formatRupiah(baseAmount, currency)}';
+            : '$name menarik dana ${formatRupiah(baseAmount)}';
         repo.sendSystemMessage(roomId: _room!.id, message: actionText);
       }
 
@@ -627,7 +625,6 @@ class _NabarRoomViewState extends State<NabarRoomView> {
     final currentUser = repo.currentUser;
     final vm = context.watch<TargetListViewModel>();
     final lang = vm.language;
-    final currency = vm.currency;
 
     if (currentUser == null) {
       final bg = context.appBg;
@@ -1134,7 +1131,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      formatRupiah(room.currentAmount, currency),
+                      formatRupiah(room.currentAmount),
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -1142,7 +1139,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                       ),
                     ),
                     Text(
-                      '${AppTranslations.tr(lang, 'nabar.target')} ${formatRupiah(room.targetAmount, currency)}',
+                      '${AppTranslations.tr(lang, 'nabar.target')} ${formatRupiah(room.targetAmount)}',
                       style: const TextStyle(fontSize: 12),
                     ),
                     const SizedBox(height: 12),
@@ -1233,7 +1230,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    formatRupiah(myNetEquity, currency),
+                    formatRupiah(myNetEquity),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -1256,7 +1253,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                             'nabar.my_equity_hint',
                           ).replaceAll(
                             '{amount}',
-                            formatRupiah(myNetEquity, currency),
+                            formatRupiah(myNetEquity),
                           ),
                           style: const TextStyle(
                             fontSize: 11,
@@ -1608,7 +1605,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${act.name} - +${formatRupiah(act.amount, currency)}',
+                                    '${act.name} - +${formatRupiah(act.amount)}',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13,
@@ -1753,7 +1750,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   ),
                   subtitle: Text(formatTimeAgo(act.timestamp, lang)),
                   trailing: Text(
-                    '+${formatRupiah(act.amount, currency)}',
+                    '+${formatRupiah(act.amount)}',
                     style: const TextStyle(
                       color: Color(0xFF16A34A),
                       fontWeight: FontWeight.bold,
@@ -1984,7 +1981,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                formatRupiah(pacingAmount, vm.currency),
+                formatRupiah(pacingAmount),
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -2023,7 +2020,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                   'detail.pacing_quick_btn',
                 ).replaceAll(
                   '{amount}',
-                  formatRupiah(pacingAmount, vm.currency),
+                  formatRupiah(pacingAmount),
                 ),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
@@ -2076,13 +2073,11 @@ class _NabarRoomViewState extends State<NabarRoomView> {
   }) {
     final vm = context.read<TargetListViewModel>();
     final lang = vm.language;
-    final currency = vm.currency;
-    final curSymbol = (currencySymbolMap[currency] ?? 'Rp').trim();
+    const curSymbol = 'Rp';
     bool isDeposit = initialIsDeposit;
     if (initialAmount != null && initialAmount > 0) {
       _amountController.text = formatAmountOnly(
         initialAmount.round(),
-        currency,
       );
     } else {
       _amountController.clear();
@@ -2241,7 +2236,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                               'nabar.my_equity_hint',
                             ).replaceAll(
                               '{amount}',
-                              formatRupiah(myNetEquity, currency),
+                              formatRupiah(myNetEquity),
                             ),
                             style: const TextStyle(
                               fontSize: 12,

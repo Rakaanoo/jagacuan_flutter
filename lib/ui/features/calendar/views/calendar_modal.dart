@@ -443,7 +443,7 @@ class _CalendarModalState extends State<CalendarModal> {
                                             ),
                                             const SizedBox(height: 2),
                                             Text(
-                                              '${formatRupiah(t.currentAmount, vm.currency)} / ${formatRupiah(t.targetAmount, vm.currency)}',
+                                              '${formatRupiah(t.currentAmount)} / ${formatRupiah(t.targetAmount)}',
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 color: mutedTextColor,

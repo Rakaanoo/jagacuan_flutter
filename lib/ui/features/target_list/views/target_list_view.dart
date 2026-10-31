@@ -1250,7 +1250,7 @@ class _TargetListViewState extends State<TargetListView>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${formatRupiah(target.currentAmount, context.watch<TargetListViewModel>().currency)} / ${formatRupiah(target.targetAmount, context.watch<TargetListViewModel>().currency)}',
+                          '${formatRupiah(target.currentAmount)} / ${formatRupiah(target.targetAmount)}',
                           style: const TextStyle(
                             fontSize: 13,
                             color: Colors.grey,

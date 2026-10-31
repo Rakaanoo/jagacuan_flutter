@@ -1,22 +1,6 @@
 import 'package:intl/intl.dart';
 
-const Map<String, double> exchangeRates = {
-  'IDR': 1.0,
-};
-
-const Map<String, String> currencySymbolMap = {
-  'IDR': 'Rp ',
-};
-
-double toBaseIDR(num amountInActiveCurrency, [String currency = 'IDR']) {
-  return amountInActiveCurrency.toDouble();
-}
-
-double fromBaseIDR(num baseAmountIDR, [String currency = 'IDR']) {
-  return baseAmountIDR.toDouble();
-}
-
-String formatCurrency(num amount, [String currency = 'IDR']) {
+String formatCurrency(num amount, [String? _]) {
   final formatter = NumberFormat.currency(
     locale: 'id_ID',
     symbol: 'Rp ',
@@ -25,11 +9,11 @@ String formatCurrency(num amount, [String currency = 'IDR']) {
   return formatter.format(amount);
 }
 
-String formatRupiah(num amount, [String currency = 'IDR']) {
-  return formatCurrency(amount, 'IDR');
+String formatRupiah(num amount, [String? _]) {
+  return formatCurrency(amount);
 }
 
-String formatAmountOnly(num amount, [String currency = 'IDR']) {
+String formatAmountOnly(num amount, [String? _]) {
   final formatter = NumberFormat.decimalPattern('id_ID');
   return formatter.format(amount);
 }

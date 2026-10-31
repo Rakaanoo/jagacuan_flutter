@@ -90,7 +90,7 @@ class NotificationService {
     final title = '⏰ Waktunya Nabung! ($targetTitle)';
     final body = remainingAmount > 0
         ? 'Ayo sisihkan tabunganmu hari ini! Target "$targetTitle" kurang $remainingStr lagi. Kejar impianmu sekarang! 💪'
-        : 'Hebat! Target "$targetTitle" kamu sudah tercapai. Pertahankan kebiasaan baik ini! 🎉';
+        : 'Hebat! Target "$targetTitle" kamu sudah tercapai. Pertahankan kebiasaan baik ini!';
 
     await _notificationsPlugin.show(
       targetIdHash.abs() % 100000,

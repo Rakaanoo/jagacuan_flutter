@@ -794,14 +794,25 @@ class _TargetDetailViewState extends State<TargetDetailView> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              AppTranslations.tr(vm.language, 'detail.celebrate_title'),
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: context.appTextPrimary,
-              ),
-              textAlign: TextAlign.center,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  LucideIcons.partyPopper,
+                  color: Color(0xFFF59E0B),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  AppTranslations.tr(vm.language, 'detail.celebrate_title'),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: context.appTextPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
@@ -1434,20 +1445,36 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                target.isArchived
-                                    ? '🏆 Celengan Dipecahkan'
-                                    : AppTranslations.tr(
-                                        vm.language,
-                                        'detail.celebrate_title',
+                              Row(
+                                children: [
+                                  Icon(
+                                    target.isArchived
+                                        ? LucideIcons.trophy
+                                        : LucideIcons.partyPopper,
+                                    size: 15,
+                                    color: isDark
+                                        ? const Color(0xFFFDE68A)
+                                        : const Color(0xFF92400E),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      target.isArchived
+                                          ? 'Celengan Dipecahkan'
+                                          : AppTranslations.tr(
+                                              vm.language,
+                                              'detail.celebrate_title',
+                                            ),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? const Color(0xFFFDE68A)
+                                            : const Color(0xFF92400E),
                                       ),
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark
-                                      ? const Color(0xFFFDE68A)
-                                      : const Color(0xFF92400E),
-                                ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 2),
                               Text(
@@ -1485,17 +1512,30 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: Text(
-                            target.isArchived
-                                ? 'Detail'
-                                : AppTranslations.tr(
-                                    vm.language,
-                                    'detail.smash_piggy',
-                                  ),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!target.isArchived) ...[
+                                const Icon(
+                                  LucideIcons.hammer,
+                                  size: 13,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 4),
+                              ],
+                              Text(
+                                target.isArchived
+                                    ? 'Detail'
+                                    : AppTranslations.tr(
+                                        vm.language,
+                                        'detail.smash_piggy',
+                                      ),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -1644,25 +1684,38 @@ class _TargetDetailViewState extends State<TargetDetailView> {
                                 style: TextStyle(fontSize: 12, color: subText),
                               ),
                               const SizedBox(height: 2),
-                              Text(
-                                target.isCompleted
-                                    ? AppTranslations.tr(
-                                        vm.language,
-                                        'detail.estimate_reached',
-                                      )
-                                    : daysDiff <= 0
-                                    ? AppTranslations.tr(
-                                        vm.language,
-                                        'detail.estimate_due_today',
-                                      )
-                                    : '${target.endDate.day}/${target.endDate.month}/${target.endDate.year} (${AppTranslations.tr(vm.language, 'detail.days_left').replaceAll('{days}', daysDiff.toString())})',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: target.isCompleted
-                                      ? const Color(0xFF16A34A)
-                                      : textCol,
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    target.isCompleted
+                                        ? AppTranslations.tr(
+                                            vm.language,
+                                            'detail.estimate_reached',
+                                          )
+                                        : daysDiff <= 0
+                                        ? AppTranslations.tr(
+                                            vm.language,
+                                            'detail.estimate_due_today',
+                                          )
+                                        : '${target.endDate.day}/${target.endDate.month}/${target.endDate.year} (${AppTranslations.tr(vm.language, 'detail.days_left').replaceAll('{days}', daysDiff.toString())})',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: target.isCompleted
+                                          ? const Color(0xFF16A34A)
+                                          : textCol,
+                                    ),
+                                  ),
+                                  if (target.isCompleted) ...[
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      LucideIcons.partyPopper,
+                                      size: 13,
+                                      color: Color(0xFF16A34A),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ],
                           ),

@@ -913,7 +913,6 @@ class _TargetListViewState extends State<TargetListView>
       backgroundColor: Colors.transparent,
       builder: (_) => SelectTargetTypeModal(
         onSelectType: (type) {
-          Navigator.pop(context);
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,

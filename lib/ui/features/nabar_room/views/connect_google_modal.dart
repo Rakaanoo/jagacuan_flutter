@@ -525,9 +525,10 @@ class _ConnectGoogleModalState extends State<ConnectGoogleModal> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
+                        final parentContext = Navigator.of(context).context;
                         Navigator.pop(context);
                         showModalBottomSheet(
-                          context: context,
+                          context: parentContext,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
                           builder: (_) => const CreateTargetModal(

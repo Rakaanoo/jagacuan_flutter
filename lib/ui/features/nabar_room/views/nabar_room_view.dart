@@ -800,7 +800,6 @@ class _NabarRoomViewState extends State<NabarRoomView> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.pop(context);
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,

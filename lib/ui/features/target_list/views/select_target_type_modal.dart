@@ -70,7 +70,10 @@ class SelectTargetTypeModal extends StatelessWidget {
             iconColor: iconColor,
             titleColor: titleColor,
             subColor: subColor,
-            onTap: () => onSelectType(TargetType.target),
+            onTap: () {
+              Navigator.pop(context);
+              onSelectType(TargetType.target);
+            },
           ),
           const SizedBox(height: 14),
 

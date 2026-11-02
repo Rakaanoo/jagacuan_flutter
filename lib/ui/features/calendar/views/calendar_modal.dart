@@ -336,9 +336,10 @@ class _CalendarModalState extends State<CalendarModal> {
                     ),
                     InkWell(
                       onTap: () {
+                        final parentContext = Navigator.of(context).context;
                         Navigator.pop(context);
                         showModalBottomSheet(
-                          context: context,
+                          context: parentContext,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
                           builder: (_) => CreateTargetModal(

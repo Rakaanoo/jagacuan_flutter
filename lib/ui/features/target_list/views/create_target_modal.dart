@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../view_models/target_list_view_model.dart';
+import '../../nabar_room/views/nabar_room_view.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../../../data/models/target_item.dart';
 import '../../../core/formatters.dart';
@@ -114,9 +115,9 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
       final vm = context.read<TargetListViewModel>();
       final baseTargetAmount = amount;
       final id = DateTime.now().millisecondsSinceEpoch.toString();
+      String? roomId;
 
       if (_selectedType == TargetType.nabar) {
-        String? roomId;
         String? remoteCoverUrl;
 
         try {
@@ -196,7 +197,7 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
       }
 
       if (mounted) {
-        Navigator.pop(context);
+        final activeRoomId = roomId;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -206,6 +207,19 @@ class _CreateTargetModalState extends State<CreateTargetModal> {
             ),
           ),
         );
+
+        if (_selectedType == TargetType.nabar &&
+            activeRoomId != null &&
+            activeRoomId.isNotEmpty) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => NabarRoomView(roomId: activeRoomId),
+            ),
+          );
+        } else {
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
       if (mounted) {

@@ -6,8 +6,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'data/repositories/local_storage_repository.dart';
 import 'data/repositories/supabase_nabar_repository.dart';
 import 'ui/core/theme.dart';
+import 'ui/features/splash/views/splash_screen_view.dart';
 import 'ui/features/target_list/view_models/target_list_view_model.dart';
-import 'ui/features/target_list/views/target_list_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,7 +62,7 @@ class JagacuanApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: vm.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            home: const TargetListView(),
+            home: const SplashScreenView(),
           );
         },
       ),

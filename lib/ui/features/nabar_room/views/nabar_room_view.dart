@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,20 @@ import '../../../core/i18n.dart';
 import '../../../core/theme.dart';
 import 'share_invite_modal.dart';
 import 'nabar_chat_bottom_sheet.dart';
+
+class _NabarMemberStat {
+  final NabarMember member;
+  final int depositCount;
+  final double totalDepositAmount;
+  final DateTime? lastDepositDate;
+
+  _NabarMemberStat({
+    required this.member,
+    required this.depositCount,
+    required this.totalDepositAmount,
+    this.lastDepositDate,
+  });
+}
 
 class NabarRoomView extends StatefulWidget {
   final String roomId;
@@ -34,6 +49,7 @@ class _NabarRoomViewState extends State<NabarRoomView> {
   NabarMessage? _latestSneakPeekMessage;
   bool _showSneakPeek = false;
   Timer? _sneakPeekTimer;
+  String? _selectedMemberActivityId;
 
   @override
   void initState() {
@@ -1628,81 +1644,15 @@ class _NabarRoomViewState extends State<NabarRoomView> {
               const SizedBox(height: 20),
             ],
 
-            // Anggota Room Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  AppTranslations.tr(lang, 'nabar.members_title'),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Chip(
-                  label: Text(
-                    AppTranslations.tr(
-                      lang,
-                      'nabar.member_count',
-                    ).replaceAll('{count}', '${room.members.length}'),
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 48,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: room.members.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, idx) {
-                  final mem = room.members[idx];
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: cardBg,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: cardBorder),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(
-                          radius: 14,
-                          backgroundImage:
-                              mem.avatarUrl != null && mem.avatarUrl!.isNotEmpty
-                              ? NetworkImage(mem.avatarUrl!)
-                              : null,
-                          child:
-                              (mem.avatarUrl == null || mem.avatarUrl!.isEmpty)
-                              ? Text(
-                                  mem.name[0].toUpperCase(),
-                                  style: const TextStyle(fontSize: 12),
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          mem.name,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+            // Diagram Keaktifan Anggota (Member Activity Vertical Chart)
+            _buildMemberActivityChartCard(
+              room: room,
+              lang: lang,
+              isDark: isDark,
+              cardBg: cardBg,
+              cardBorder: cardBorder,
+              textColor: textColor,
+              mutedTextColor: mutedTextColor,
             ),
             const SizedBox(height: 20),
 
@@ -1817,6 +1767,443 @@ class _NabarRoomViewState extends State<NabarRoomView> {
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMemberActivityChartCard({
+    required NabarRoom room,
+    required String lang,
+    required bool isDark,
+    required Color cardBg,
+    required Color cardBorder,
+    required Color textColor,
+    required Color mutedTextColor,
+  }) {
+    if (room.members.isEmpty) return const SizedBox.shrink();
+
+    final memberStats = room.members.map((mem) {
+      final memApprovedDeposits = room.activities
+          .where((a) =>
+              a.userId == mem.userId && a.isDeposit && a.status == 'approved')
+          .toList();
+      final count = memApprovedDeposits.length;
+      final total = memApprovedDeposits.fold<double>(
+        0.0,
+        (sum, a) => sum + a.amount,
+      );
+      DateTime? lastDate;
+      if (memApprovedDeposits.isNotEmpty) {
+        lastDate = memApprovedDeposits
+            .map((a) => a.timestamp)
+            .reduce((a, b) => a.isAfter(b) ? a : b);
+      }
+      return _NabarMemberStat(
+        member: mem,
+        depositCount: count,
+        totalDepositAmount: total,
+        lastDepositDate: lastDate,
+      );
+    }).toList();
+
+    // Urutkan dari yang paling jarang (0x, 1x) hingga yang paling aktif
+    memberStats.sort((a, b) {
+      if (a.depositCount != b.depositCount) {
+        return a.depositCount.compareTo(b.depositCount);
+      }
+      return a.totalDepositAmount.compareTo(b.totalDepositAmount);
+    });
+
+    final maxDepositCount =
+        memberStats.fold<int>(0, (m, s) => max(m, s.depositCount));
+    final effectiveMax = max(3, maxDepositCount);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Diagram Keaktifan
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        LucideIcons.barChart3,
+                        size: 18,
+                        color: Color(0xFF10B981),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppTranslations.tr(
+                                lang, 'nabar.activity_chart_title'),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: textColor,
+                            ),
+                          ),
+                          Text(
+                            AppTranslations.tr(
+                                lang, 'nabar.activity_chart_subtitle'),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: mutedTextColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color:
+                      isDark ? const Color(0xFF1E2026) : const Color(0xFFEFEADF),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: cardBorder),
+                ),
+                child: Text(
+                  AppTranslations.tr(lang, 'nabar.member_count')
+                      .replaceAll('{count}', '${room.members.length}'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: mutedTextColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+
+          // Vertical Bar Chart dengan Profil Pengguna
+          SizedBox(
+            height: 190,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: memberStats.map((stat) {
+                  final isSelected =
+                      _selectedMemberActivityId == stat.member.userId;
+                  final isZero = stat.depositCount == 0;
+                  final isPeak =
+                      stat.depositCount > 0 && stat.depositCount == maxDepositCount;
+                  final ratio =
+                      (stat.depositCount / effectiveMax).clamp(0.0, 1.0);
+                  const maxBarHeight = 85.0;
+                  final barHeight = max(8.0, maxBarHeight * ratio);
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedMemberActivityId =
+                            isSelected ? null : stat.member.userId;
+                      });
+                    },
+                    child: Container(
+                      width: 72,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                      decoration: isSelected
+                          ? BoxDecoration(
+                              color: const Color(0xFF7C8BFF)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: const Color(0xFF7C8BFF)
+                                    .withValues(alpha: 0.5),
+                              ),
+                            )
+                          : null,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          // Badge count di atas batang
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isZero
+                                  ? (isDark
+                                      ? const Color(0xFF2A2B33)
+                                      : const Color(0xFFE5DFD5))
+                                  : (isPeak
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFF7C8BFF)
+                                          .withValues(alpha: 0.2)),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isZero ? '0x' : '${stat.depositCount}x',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: isZero
+                                    ? mutedTextColor
+                                    : (isPeak
+                                        ? Colors.white
+                                        : const Color(0xFF7C8BFF)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Bilah Batang Vertikal
+                          SizedBox(
+                            height: maxBarHeight,
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 350),
+                                width: 22,
+                                height: barHeight,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(6)),
+                                  gradient: isZero
+                                      ? null
+                                      : LinearGradient(
+                                          colors: isPeak
+                                              ? const [
+                                                  Color(0xFF10B981),
+                                                  Color(0xFF34D399)
+                                                ]
+                                              : [
+                                                  const Color(0xFF7C8BFF)
+                                                      .withValues(alpha: 0.7),
+                                                  const Color(0xFF10B981)
+                                                      .withValues(alpha: 0.8),
+                                                ],
+                                          begin: Alignment.bottomCenter,
+                                          end: Alignment.topCenter,
+                                        ),
+                                  color: isZero
+                                      ? (isDark
+                                          ? const Color(0xFF2E313D)
+                                          : const Color(0xFFDDD5C7))
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Avatar Profil Pengguna
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              CircleAvatar(
+                                radius: 15,
+                                backgroundImage: stat.member.avatarUrl != null &&
+                                        stat.member.avatarUrl!.isNotEmpty
+                                    ? NetworkImage(stat.member.avatarUrl!)
+                                    : null,
+                                child: (stat.member.avatarUrl == null ||
+                                        stat.member.avatarUrl!.isEmpty)
+                                    ? Text(
+                                        stat.member.name.isNotEmpty
+                                            ? stat.member.name[0].toUpperCase()
+                                            : '?',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              if (stat.member.role == 'owner')
+                                Positioned(
+                                  right: -2,
+                                  bottom: -2,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFF59E0B),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.crown,
+                                      size: 8,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+
+                          // Nama Singkat Anggota
+                          Text(
+                            stat.member.name.split(' ').first,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight:
+                                  isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected
+                                  ? const Color(0xFF7C8BFF)
+                                  : textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+
+          // Kartu Rincian Interaktif Anggota Terpilih
+          if (_selectedMemberActivityId != null) ...[
+            ...() {
+              final sel = memberStats.firstWhere(
+                (s) => s.member.userId == _selectedMemberActivityId,
+                orElse: () => memberStats.first,
+              );
+              return [
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF1E2026)
+                        : const Color(0xFFF3ECE1),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: const Color(0xFF7C8BFF).withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundImage: sel.member.avatarUrl != null &&
+                                sel.member.avatarUrl!.isNotEmpty
+                            ? NetworkImage(sel.member.avatarUrl!)
+                            : null,
+                        child: (sel.member.avatarUrl == null ||
+                                sel.member.avatarUrl!.isEmpty)
+                            ? Text(sel.member.name.isNotEmpty
+                                ? sel.member.name[0].toUpperCase()
+                                : '?')
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    sel.member.name,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: textColor,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (sel.member.role == 'owner') ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF59E0B)
+                                          .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'Host',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFF59E0B),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              sel.depositCount == 0
+                                  ? AppTranslations.tr(
+                                      lang, 'nabar.never_contributed')
+                                  : '${AppTranslations.tr(lang, 'nabar.total_contributed')}: ${formatRupiah(sel.totalDepositAmount)} (${AppTranslations.tr(lang, 'nabar.times_contributed').replaceAll('{count}', '${sel.depositCount}')})',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: sel.depositCount == 0
+                                    ? mutedTextColor
+                                    : const Color(0xFF10B981),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (sel.lastDepositDate != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                '${AppTranslations.tr(lang, 'nabar.last_contribution')}: ${formatDateIndo(sel.lastDepositDate!, lang)}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: mutedTextColor,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(LucideIcons.x, size: 16, color: mutedTextColor),
+                        onPressed: () {
+                          setState(() {
+                            _selectedMemberActivityId = null;
+                          });
+                        },
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ],
+                  ),
+                ),
+              ];
+            }(),
+          ],
         ],
       ),
     );

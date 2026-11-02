@@ -7,6 +7,8 @@ import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../nabar_room/views/connect_google_modal.dart';
 import '../../../core/i18n.dart';
 import '../../../core/theme.dart';
+import '../../../core/app_update_modal.dart';
+import '../../../../core/services/update_service.dart';
 
 class SidebarDrawer extends StatelessWidget {
   const SidebarDrawer({super.key});
@@ -297,9 +299,57 @@ class SidebarDrawer extends StatelessWidget {
                         showAboutDialog(
                           context: parentCtx,
                           applicationName: 'Jagacuan',
-                          applicationVersion: '1.0.0',
+                          applicationVersion: '1.0.12',
                           applicationLegalese: '© 2026 Jagacuan Team',
                         );
+                      },
+                    ),
+                    const SizedBox(height: 6),
+
+                    _buildDrawerItem(
+                      context,
+                      icon: LucideIcons.downloadCloud,
+                      title: vm.language == 'id' ? 'Periksa Pembaruan' : 'Check for Updates',
+                      iconColor: const Color(0xFF7C8BFF),
+                      textColor: textColor,
+                      onTap: () async {
+                        final parentCtx = context;
+                        Navigator.pop(parentCtx);
+                        final messenger = ScaffoldMessenger.of(parentCtx);
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Row(
+                              children: [
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                ),
+                                SizedBox(width: 12),
+                                Text('Memeriksa pembaruan terbaru...'),
+                              ],
+                            ),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                        try {
+                          final info = await UpdateService.checkForUpdate();
+                          if (info != null && parentCtx.mounted) {
+                            AppUpdateModal.show(parentCtx, info);
+                          } else if (parentCtx.mounted) {
+                            messenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Aplikasi sudah dalam versi terbaru! 🎉'),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (parentCtx.mounted) {
+                            messenger.showSnackBar(
+                              SnackBar(content: Text('Gagal memeriksa pembaruan: $e')),
+                            );
+                          }
+                        }
                       },
                     ),
                     const SizedBox(height: 6),

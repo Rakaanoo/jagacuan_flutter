@@ -26,6 +26,8 @@ import '../../../core/theme.dart';
 import '../../../../data/repositories/local_storage_repository.dart';
 import '../../../../data/repositories/supabase_nabar_repository.dart';
 import '../../../core/notification_permission_dialog.dart';
+import '../../../core/app_update_modal.dart';
+import '../../../../core/services/update_service.dart';
 
 class TargetListView extends StatefulWidget {
   const TargetListView({super.key});
@@ -49,7 +51,21 @@ class _TargetListViewState extends State<TargetListView>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkClipboardForInvite();
       _syncNabarTargets();
+      _checkForAppUpdate();
     });
+  }
+
+  Future<void> _checkForAppUpdate() async {
+    await Future.delayed(const Duration(milliseconds: 700));
+    if (!mounted) return;
+    try {
+      final updateInfo = await UpdateService.checkForUpdate();
+      if (updateInfo != null && mounted) {
+        AppUpdateModal.show(context, updateInfo);
+      }
+    } catch (e) {
+      debugPrint('Check update error: $e');
+    }
   }
 
   @override
